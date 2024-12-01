@@ -1,0 +1,46 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Layout */
+.main-container {
+  @apply flex h-screen bg-zinc-900;
+}
+
+/* Sidebar */
+.sidebar {
+  @apply w-1/3 p-4 bg-white;
+}
+
+.sidebar-title {
+  @apply text-xl font-bold mb-4;
+}
+
+.spots-list {
+  @apply space-y-4;
+}
+
+.spot-item {
+  @apply p-4 border rounded-lg;
+}
+
+.spot-name {
+  @apply font-semibold;
+}
+
+.spot-address {
+  @apply text-gray-600;
+}
+
+/* Map Section */
+.map-section {
+  @apply flex-1 p-4;
+}
+
+.map-wrapper {
+  @apply h-full rounded-lg overflow-hidden bg-white;
+}
+
+.map-container {
+  @apply w-full h-full rounded-lg bg-white;
+}
