@@ -4,16 +4,16 @@
 
 /* Layout */
 .main-container {
-  @apply flex h-screen bg-zinc-900;
+  @apply flex h-screen bg-black;
 }
 
 /* Sidebar */
 .sidebar {
-  @apply w-1/3 p-4 bg-white;
+  @apply w-1/3 p-4 bg-black;
 }
 
 .sidebar-title {
-  @apply text-xl font-bold mb-4;
+  @apply text-xl font-bold mb-4 text-white;
 }
 
 .spots-list {
@@ -21,15 +21,15 @@
 }
 
 .spot-item {
-  @apply p-4 border rounded-lg;
+  @apply p-4 border border-gray-800 rounded-lg bg-black;
 }
 
 .spot-name {
-  @apply font-semibold;
+  @apply font-semibold text-white;
 }
 
 .spot-address {
-  @apply text-gray-600;
+  @apply text-gray-300;
 }
 
 /* Map Section */
@@ -38,9 +38,9 @@
 }
 
 .map-wrapper {
-  @apply h-full rounded-lg overflow-hidden bg-white;
+  @apply h-full rounded-lg overflow-hidden;
 }
 
 .map-container {
-  @apply w-full h-full rounded-lg bg-white;
+  @apply w-full h-full rounded-lg;
 }

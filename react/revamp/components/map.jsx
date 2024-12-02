@@ -162,7 +162,15 @@ const Map = forwardRef(({ parkingSpots, onBoundsChanged, selectedSpot }, ref) =>
       const marker = new googleMaps.maps.Marker({
         map: mapInstance,
         position: spot.coordinates[0],
-        title: spot.name
+        title: spot.name,
+        icon: {
+          path: googleMaps.maps.SymbolPath.CIRCLE,
+          scale: 10,
+          fillColor: "#FF7B7B",
+          fillOpacity: 0.7,
+          strokeWeight: 2,
+          strokeColor: "rgba(255, 123, 123, 0.2)",
+        }
       });
 
       const contentString = `

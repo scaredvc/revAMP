@@ -5,12 +5,10 @@ import {useEffect, useState} from 'react'
 export default function Home() {
     const [parkingSpots, setParkingSpots] = useState([])
 
-    // Initial data fetch
     useEffect(() => {
         fetchParkingSpots();
     }, [])
 
-    // Function to fetch parking spots that can be passed down
     const fetchParkingSpots = async (bounds = null) => {
         const method = bounds ? 'POST' : 'GET';
         const options = {
@@ -41,11 +39,11 @@ export default function Home() {
 
     return (
         <main className="container mx-auto p-4">
-            <h1 className="text-2xl font-bold mb-4">My Map Application</h1>
+            <h1 className="text-4xl font-bold mb-4 text-white">revAMP</h1>
             {parkingSpots.length > 0 ? (
                 <MapApp parkingSpots={parkingSpots} onBoundsChanged={fetchParkingSpots} />
             ) : (
-                <div>
+                <div className="text-white">
                     <p>Loading...</p>
                     <p>Spots loaded: {parkingSpots.length}</p>
                 </div>

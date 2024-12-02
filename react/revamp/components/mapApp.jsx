@@ -14,7 +14,6 @@ export default function MapApp({ parkingSpots, onBoundsChanged }) {
 
   const handleSpotClick = (spot) => {
     setSelectedSpot(spot);
-    // The Map component will need a ref to access its methods
     if (mapRef.current) {
       mapRef.current.focusSpot(spot);
     }
@@ -23,7 +22,6 @@ export default function MapApp({ parkingSpots, onBoundsChanged }) {
   return (
     <div className="main-container">
       <div className="sidebar">
-        <h2 className="sidebar-title">Available Spots</h2>
         <div className="spots-list">
           {parkingSpots.map((spot, index) => (
             <div key={index} className="spot-item">
