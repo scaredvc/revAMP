@@ -36,12 +36,13 @@ def update_parking_spots(bounds):
 
 @app.route('/api/data', methods=['GET', 'POST'])
 def get_data():
+    print("Received request to /api/data")
     if request.method == 'POST':
         try:
             bounds = request.json
-            print("Received bounds:", bounds)  # Debug log
+            print("Received bounds:", bounds)
             parking_spots = update_parking_spots(bounds)
-            print("Updated parking spots count:", len(parking_spots))  # Debug log
+            print("Returning spots count:", len(parking_spots))
             return jsonify({"parkingSpots": parking_spots})
         except Exception as e:
             print("Error:", str(e))  # Debug log
