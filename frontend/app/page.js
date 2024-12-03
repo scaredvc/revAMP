@@ -29,7 +29,20 @@ export default function Home() {
 
             const data = await response.json();
             console.log('Received data:', data);
-            setParkingSpots(Object.values(data.parkingSpots));
+            
+            // Transform the data back to the expected format
+            const spotsArray = Object.entries(data.parkingSpots).map(([name, details]) => ({
+                name: name,
+                description: details.ext_description,
+                additionalInfo: details.additional_info,
+                coordinates: details.positions.map(pos => ({
+                    lat: parseFloat(pos.lat),
+                    lng: parseFloat(pos.lng)
+                }))
+            }));
+            
+            console.log('Transformed spots:', spotsArray);
+            setParkingSpots(spotsArray);
         } catch (error) {
             console.error('Error fetching parking spots:', error);
         }
