@@ -10,32 +10,30 @@ export default function Home() {
     }, [])
 
     const fetchParkingSpots = async (bounds = null) => {
-        const method = bounds ? 'POST' : 'GET';
-        const options = {
-            method,
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            ...(bounds && { body: JSON.stringify(bounds) })
-        };
-
         try {
-            const response = await fetch('http://127.0.0.1:5001/api/data', options);
+            const url = 'https://amp-parking.onrender.com/api/data';
+            console.log('Fetching from:', url);
+            const response = bounds 
+                ? await fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(bounds),
+                })
+                : await fetch(url);
+
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+
             const data = await response.json();
-            const spotsArray = Object.entries(data.parkingSpots).map(([name, details]) => ({
-                name: name,
-                description: details.ext_description,
-                additionalInfo: details.additional_info,
-                coordinates: details.positions.map(pos => ({
-                    lat: parseFloat(pos.lat),
-                    lng: parseFloat(pos.lng)
-                }))
-            }));
-            setParkingSpots(spotsArray);
-        } catch (err) {
-            console.error("Error fetching data:", err);
+            console.log('Received data:', data);
+            setParkingSpots(Object.values(data.parkingSpots));
+        } catch (error) {
+            console.error('Error fetching parking spots:', error);
         }
-    }
+    };
 
     return (
         <main className="container mx-auto p-4">
