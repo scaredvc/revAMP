@@ -62,3 +62,7 @@ export default function Home() {
         </main>
     )
 }
+
+export const metadata = {
+  title: 'Home | revAMP',    // Title of the page
+}
