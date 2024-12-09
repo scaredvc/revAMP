@@ -11,7 +11,7 @@ export default function Home() {
 
     const fetchParkingSpots = async (bounds = null) => {
         try {
-            const url = 'https://amp-parking.onrender.com/api/data';
+            const url = 'https://amp-parking.onrender.com/api/data'; // url to fetch data from should be fetched from backend 
             console.log('Fetching from:', url);
             const response = bounds 
                 ? await fetch(url, {
