@@ -55,8 +55,7 @@ export default function Home() {
                 <MapApp parkingSpots={parkingSpots} onBoundsChanged={fetchParkingSpots} />
             ) : (
                 <div className="text-white">
-                    <p>Loading...</p>
-                    <p>Spots loaded: {parkingSpots.length}</p>
+                    <p>Loading... Please wait this may take a moment</p>
                 </div>
             )}
         </main>
