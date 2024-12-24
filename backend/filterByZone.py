@@ -1,4 +1,4 @@
-
+# for filtering function by zone code
 def filter_by_zone(locations, zone_code):
     filtered_locations = [x for x in locations if x['code'] == zone_code]
     cords = []
