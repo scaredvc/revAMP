@@ -1,4 +1,4 @@
-# Description: This file is used to get the description of the parking lot.
+# function used to get the description of the parking lot.
 def get_description(description_list,location):
     for parkingInfo in location:
         description_list[parkingInfo['description']] = {
