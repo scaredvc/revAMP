@@ -53,7 +53,7 @@ def get_data():
 
 @app.route('/api/zones/<zone_code>', methods=['GET'])
 def get_zone_coords(zone_code):
-    """Optional endpoint to get coordinates for a specific zone"""
+    # endpoint to get coordinates for a specific zone
     zones = search_zones(
         DEFAULT_BOUNDS["left_long"],
         DEFAULT_BOUNDS["right_long"],
