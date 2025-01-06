@@ -36,6 +36,9 @@ def update_parking_spots(bounds):
 
 @app.route('/api/data', methods=['GET', 'POST'])
 def get_data():
+    # POST: Uses bounds from frontend map view
+    # GET: Uses default UC Davis bounds
+    # Returns parking spot data in both cases
     print("Received request to /api/data")
     if request.method == 'POST':
         try:
@@ -53,7 +56,7 @@ def get_data():
 
 @app.route('/api/zones/<zone_code>', methods=['GET'])
 def get_zone_coords(zone_code):
-    # endpoint to get coordinates for a specific zone
+    # Gets coordinates for a specific parking zone
     zones = search_zones(
         DEFAULT_BOUNDS["left_long"],
         DEFAULT_BOUNDS["right_long"],
