@@ -4,6 +4,7 @@ def filter_by_zone(locations, zone_code):
     cords = []
     for location in filtered_locations:
         for pos in location['positions']:
+            # gets the coordinates of the filtered parking spots by zone code
             cords.append((pos['lat'], pos['lng']))
     return cords
 
