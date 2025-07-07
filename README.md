@@ -2,14 +2,16 @@
 
 A modern, redesigned parking application for UC Davis that provides real-time parking zone information and interactive mapping capabilities.
 
+**⚠️ Educational Project Disclaimer**: This is an educational project for learning purposes. The application scrapes parking data from UC Davis's public parking services. Users should be aware of the university's terms of service and data usage policies.
+
 ## 🚗 Project Overview
 
-revAMP is a full-stack web application that improves upon UC Davis's current parking system by offering:
+revAMP is a full-stack web application that demonstrates modern web development techniques by creating an improved interface for UC Davis parking information:
 
-- **Interactive Parking Map**: Real-time visualization of parking zones around UC Davis
+- **Interactive Parking Map**: Visualization of parking zones around UC Davis
 - **Zone Information**: Detailed descriptions and information for each parking zone
 - **Modern UI/UX**: Clean, responsive design built with Next.js and Tailwind CSS
-- **Real-time Data**: Live parking zone data from UC Davis parking services
+- **Educational Purpose**: Demonstrates API integration, web scraping, and full-stack development
 
 ## 🏗️ Architecture
 
@@ -17,6 +19,7 @@ revAMP is a full-stack web application that improves upon UC Davis's current par
 - **Backend**: Flask API with CORS support for cross-origin requests
 - **Maps**: Google Maps JavaScript API for interactive mapping
 - **Styling**: Tailwind CSS for modern, responsive design
+- **Data Source**: Public UC Davis parking services (for educational purposes)
 
 ## 🚀 Quick Start
 
@@ -99,7 +102,7 @@ revAMP/
 ### Key Features
 
 - **Interactive Map**: Google Maps integration with custom parking zone overlays
-- **Real-time Data**: Live parking zone information from UC Davis services
+- **Educational Focus**: Demonstrates modern web development techniques
 - **Responsive Design**: Mobile-friendly interface built with Tailwind CSS
 - **Search Functionality**: Find specific parking zones quickly
 - **Information Panel**: Detailed zone descriptions and parking information
@@ -123,22 +126,34 @@ revAMP/
 - **Flask** - Python web framework
 - **Flask-CORS** - Cross-origin resource sharing
 - **Requests** - HTTP library for API calls
-- **Cloudscraper** - Bypass anti-bot protection
+- **Cloudscraper** - Web scraping utility (educational use only)
 - **Python-dotenv** - Environment variable management
 
-## 🔒 Security
+## 🔒 Security & Ethics
 
 - Environment variables are properly secured and not committed to version control
 - API keys are stored in `.env` files (not tracked by Git)
 - CORS is properly configured for secure cross-origin requests
+- **Educational Use**: This project is for learning purposes only
+- **Data Source**: Uses publicly available UC Davis parking information
+- **Rate Limiting**: Implemented to respect server resources
+
+## ⚖️ Legal & Ethical Considerations
+
+**Important**: This project is for educational purposes only. Users should:
+
+- Respect UC Davis's terms of service
+- Be aware of data usage policies
+- Use the application responsibly
+- Consider the impact on university servers
+- Understand this is a learning demonstration, not a production service
 
 ## 🤝 Contributing
 
 1. Fork the repository
 2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add some amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+3. Make your changes and commit them with clear, descriptive messages
+4. Submit a Pull Request
 
 ## 📝 License
 
@@ -146,7 +161,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 🙏 Acknowledgments
 
-- UC Davis Parking Services for providing parking zone data
+- UC Davis Parking Services for providing public parking zone data
 - Google Maps Platform for mapping services
 - The Next.js and React communities for excellent documentation
 
@@ -157,3 +172,5 @@ For questions or support, please open an issue on GitHub.
 ---
 
 **Note**: This project requires a Google Maps API key to function properly. Make sure to obtain one from the Google Cloud Console and add it to your `.env` file.
+
+**Educational Disclaimer**: This project demonstrates web development techniques using publicly available data. Users should respect all applicable terms of service and use the application responsibly.
