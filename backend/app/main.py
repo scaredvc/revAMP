@@ -10,9 +10,9 @@ from slowapi.errors import RateLimitExceeded
 from slowapi.middleware import SlowAPIMiddleware
 from slowapi.util import get_remote_address
 
-from backend.searchZones import search_zones
-from backend.getDescription import get_description
-from backend.filterByZone import filter_by_zone
+from backend.app.services.search_zones import search_zones
+from backend.app.services.get_description import get_description
+from backend.app.services.filter_by_zone import filter_by_zone
 
 
 app = FastAPI(title="revAMP API", version="1.0.0")
