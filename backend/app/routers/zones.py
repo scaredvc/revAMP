@@ -65,3 +65,17 @@ def get_raw_zones(request: Request):
     )
     zones_json = json.loads(zones_text)
     return zones_json
+
+@router.get("/api/zones)")
+@limiter.limit("20/minute")
+def get_zones(request: Request):
+    zones_text = search_zones(
+        DEFAULT_BOUNDS["left_long"],
+        DEFAULT_BOUNDS["right_long"],
+        DEFAULT_BOUNDS["top_lat"],
+        DEFAULT_BOUNDS["bottom_lat"],
+    )
+    zones_json = json.loads(zones_text)
+    descriptions = [zone["description"] for zone in zones_json["zones"]]
+    
+    return descriptions
