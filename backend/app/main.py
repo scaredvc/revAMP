@@ -5,14 +5,15 @@ from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
-from slowapi import Limiter
 from slowapi.errors import RateLimitExceeded
 from slowapi.middleware import SlowAPIMiddleware
-from slowapi.util import get_remote_address
+from backend.app.core.shared import limiter
 
 from backend.app.services.search_zones import search_zones
 from backend.app.services.get_description import get_description
 from backend.app.services.filter_by_zone import filter_by_zone
+from backend.app.routers.health import router as health_router
+from backend.app.routers.zones import router as zones_router
 
 
 app = FastAPI(title="revAMP API", version="1.0.0")
@@ -27,8 +28,7 @@ app.add_middleware(
 )
 
 
-# SlowAPI limiter setup (mirrors previous Flask-Limiter defaults)
-limiter = Limiter(key_func=get_remote_address, default_limits=["200/day", "50/hour"])
+# SlowAPI limiter middleware
 app.state.limiter = limiter
 app.add_middleware(SlowAPIMiddleware)
 
@@ -73,37 +73,5 @@ def update_parking_spots(bounds: Dict[str, float]):
     get_description(parking_spots, locations)
     return parking_spots
 
-
-@app.get("/api/data")
-@limiter.limit("30/minute")
-def get_data_default(request: Request):
-    parking_spots = update_parking_spots(DEFAULT_BOUNDS)
-    return {"parkingSpots": parking_spots}
-
-
-@app.post("/api/data")
-@limiter.limit("30/minute")
-def get_data(request: Request, bounds: Bounds):
-    parking_spots = update_parking_spots(bounds.dict())
-    return {"parkingSpots": parking_spots}
-
-
-@app.get("/api/zones/{zone_code}")
-@limiter.limit("60/minute")
-def get_zone_coords(request: Request, zone_code: str):
-    zones_text = search_zones(
-        DEFAULT_BOUNDS["left_long"],
-        DEFAULT_BOUNDS["right_long"],
-        DEFAULT_BOUNDS["top_lat"],
-        DEFAULT_BOUNDS["bottom_lat"],
-    )
-    zones_json = json.loads(zones_text)
-    locations = zones_json["zones"]
-    coords = filter_by_zone(locations, zone_code)
-    return {"coordinates": coords}
-
-
-@app.get("/health")
-def health():
-    return {"status": "ok"}
-
+app.include_router(health_router)
+app.include_router(zones_router)
