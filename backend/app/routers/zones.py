@@ -9,7 +9,7 @@ from backend.app.core.shared import limiter, DEFAULT_BOUNDS
 router = APIRouter()
 
 @router.get("/api/data")
-@limiter.limit("30/minute")
+@limiter.limit("120/minute")
 def get_data_default(request: Request):
     zones_text = search_zones(
         DEFAULT_BOUNDS["left_long"],
@@ -25,7 +25,7 @@ def get_data_default(request: Request):
 
 
 @router.post("/api/data")
-@limiter.limit("30/minute")
+@limiter.limit("120/minute")
 def get_data(request: Request, bounds: Bounds):
     zones_text = search_zones(
         bounds.left_long,
