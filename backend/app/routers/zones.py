@@ -1,10 +1,10 @@
 import json
 from fastapi import APIRouter, Request
-from backend.app.schemas.zones import Bounds
-from backend.app.services.search_zones import search_zones
-from backend.app.services.filter_by_zone import filter_by_zone
-from backend.app.services.get_description import get_description
-from backend.app.core.shared import limiter, DEFAULT_BOUNDS
+from app.schemas.zones import Bounds
+from app.services.search_zones import search_zones
+from app.services.filter_by_zone import filter_by_zone
+from app.services.get_description import get_description
+from app.core.shared import limiter, DEFAULT_BOUNDS
 
 router = APIRouter()
 
@@ -66,7 +66,7 @@ def get_raw_zones(request: Request):
     zones_json = json.loads(zones_text)
     return zones_json
 
-@router.get("/api/zones)")
+@router.get("/api/zones")
 @limiter.limit("20/minute")
 def get_zones(request: Request):
     zones_text = search_zones(
@@ -79,3 +79,10 @@ def get_zones(request: Request):
     descriptions = [zone["description"] for zone in zones_json["zones"]]
     
     return descriptions
+
+@router.get("/api/filter/description_to_zones")
+@limiter.limit("60/minute")
+def get_description_to_zones(request: Request, description: str):
+    all_zones_data = get_raw_zones(request)
+    zones = {zone["description"]: zone["code"] for zone in all_zones_data["zones"]}
+    return zones
