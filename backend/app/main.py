@@ -7,13 +7,13 @@ from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 from slowapi.errors import RateLimitExceeded
 from slowapi.middleware import SlowAPIMiddleware
-from backend.app.core.shared import limiter
+from app.core.shared import limiter
 
-from backend.app.services.search_zones import search_zones
-from backend.app.services.get_description import get_description
-from backend.app.services.filter_by_zone import filter_by_zone
-from backend.app.routers.health import router as health_router
-from backend.app.routers.zones import router as zones_router
+from app.services.search_zones import search_zones
+from app.services.get_description import get_description
+from app.services.filter_by_zone import filter_by_zone
+from app.routers.health import router as health_router
+from app.routers.zones import router as zones_router
 
 
 app = FastAPI(title="revAMP API", version="1.0.0")

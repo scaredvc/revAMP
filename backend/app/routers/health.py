@@ -1,5 +1,5 @@
 from fastapi import APIRouter
-from backend.app.schemas.zones import HeathResponse
+from app.schemas.zones import HeathResponse
 
 router = APIRouter()
 
