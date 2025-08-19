@@ -5,16 +5,22 @@ import {useEffect, useState} from 'react'
 export default function Home() {
     const [parkingSpots, setParkingSpots] = useState([])
     const [error, setError] = useState(null)
-    const [isLoading, setIsLoading] = useState(true)
+    const [isInitialLoading, setIsInitialLoading] = useState(true)
+    const [isUpdatingData, setIsUpdatingData] = useState(false)
 
     useEffect(() => {
         fetchParkingSpots();
     }, [])
 
-    const fetchParkingSpots = async (bounds = null) => {
+    const fetchParkingSpots = async (bounds = null, isUpdate = false) => {
         try {
-            setError(null);
-            setIsLoading(true);
+            if (!isUpdate) {
+                setError(null);
+                setIsInitialLoading(true);
+            } else {
+                setIsUpdatingData(true);
+            }
+            
             const url = 'https://amp-parking.onrender.com/api/data'; // url to fetch data from should be fetched from backend 
             console.log('Fetching from:', url);
             const response = bounds 
@@ -49,10 +55,21 @@ export default function Home() {
             setParkingSpots(spotsArray);
         } catch (error) {
             console.error('Error fetching parking spots:', error);
-            setError(error.message || 'An error occurred while loading parking data.');
+            if (!isUpdate) {
+                setError(error.message || 'An error occurred while loading parking data.');
+            }
         } finally {
-            setIsLoading(false);
+            if (!isUpdate) {
+                setIsInitialLoading(false);
+            } else {
+                setIsUpdatingData(false);
+            }
         }
+    };
+
+    const handleBoundsChanged = (bounds) => {
+        // Only fetch new data when bounds change, don't show main loading
+        fetchParkingSpots(bounds, true);
     };
 
     const handleRetry = () => {
@@ -80,17 +97,25 @@ export default function Home() {
                 </div>
             ) : null}
             
-            {isLoading ? (
+            {isInitialLoading ? (
                 <div className="text-white">
                     <p>Loading... Please wait this may take a moment</p> 
                 </div>
-            ) : parkingSpots.length > 0 ? (
-                <MapApp parkingSpots={parkingSpots} onBoundsChanged={fetchParkingSpots} />
-            ) : !error ? (
-                <div className="text-white">
-                    <p>No parking spots found.</p>
+            ) : (
+                <div>
+                    <MapApp 
+                        parkingSpots={parkingSpots} 
+                        onBoundsChanged={handleBoundsChanged}
+                        isUpdating={isUpdatingData}
+                    />
+                    {parkingSpots.length === 0 && !isUpdatingData && (
+                        <div className="text-white text-center mt-4">
+                            <p>No parking spots found in this area.</p>
+                            <p className="text-sm text-gray-400">Try moving the map to a different location.</p>
+                        </div>
+                    )}
                 </div>
-            ) : null}
+            )}
         </main>
     )
 }

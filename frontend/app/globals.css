@@ -42,5 +42,6 @@
 }
 
 .map-container {
-  @apply w-full h-full rounded-lg;
+  @apply w-full h-full rounded-lg bg-gray-200;
+  min-height: 500px;
 }

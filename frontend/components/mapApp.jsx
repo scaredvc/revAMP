@@ -8,7 +8,7 @@ const Map = dynamic(
   { ssr: false }
 )
 
-export default function MapApp({ parkingSpots, onBoundsChanged }) {
+export default function MapApp({ parkingSpots, onBoundsChanged, isUpdating }) {
   const [selectedSpot, setSelectedSpot] = useState(null);
   const mapRef = useRef(null);
 
@@ -34,7 +34,11 @@ export default function MapApp({ parkingSpots, onBoundsChanged }) {
 
       <div className="map-section">
         <div className="map-wrapper">
-          <Map parkingSpots={parkingSpots} onBoundsChanged={onBoundsChanged} />
+          <Map 
+            parkingSpots={parkingSpots} 
+            onBoundsChanged={onBoundsChanged}
+            isUpdating={isUpdating}
+          />
         </div>
       </div>
     </div>
