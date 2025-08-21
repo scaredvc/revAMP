@@ -117,3 +117,5 @@ temp/
 
 # Project specific
 .qodo
+
+doc/
