@@ -9,7 +9,16 @@ export default function InfoPanel({ point }) {
         <MapPin className="mr-2 text-blue-500" />
         {point.name}
       </h2>
-      <p className="text-sm text-gray-600 mb-2">Coordinates: {point.coordinates.join(', ')}</p>
+      <p className="text-sm text-gray-600 mb-2">
+        Coordinates: {Array.isArray(point.coordinates) && point.coordinates.length > 0
+          ? point.coordinates.map(coord =>
+              typeof coord === 'object' && coord.lat !== undefined && coord.lng !== undefined
+                ? `${coord.lat}, ${coord.lng}`
+                : String(coord)
+            ).join(' | ')
+          : 'N/A'
+        }
+      </p>
       <p className="mt-2 text-gray-800">{point.description}</p>
     </div>
   )

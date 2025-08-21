@@ -1,7 +1,7 @@
 'use client'
 
 import dynamic from 'next/dynamic'
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect, useCallback } from 'react'
 
 const Map = dynamic(
   () => import('./map'),
@@ -19,9 +19,18 @@ export default function MapApp({ parkingSpots, onBoundsChanged, isUpdating }) {
     }
   };
 
+  // Simple bounds change handler
+  const handleBoundsChange = useCallback((bounds) => {
+    console.log("🚨 MAP BOUNDS CHANGED EVENT");
+    onBoundsChanged(bounds);
+  }, [onBoundsChanged]);
+
+
+
   return (
     <div className="main-container">
       <div className="sidebar">
+
         <div className="spots-list">
           {parkingSpots.map((spot, index) => (
             <div key={index} className="spot-item">
@@ -34,10 +43,12 @@ export default function MapApp({ parkingSpots, onBoundsChanged, isUpdating }) {
 
       <div className="map-section">
         <div className="map-wrapper">
-          <Map 
-            parkingSpots={parkingSpots} 
-            onBoundsChanged={onBoundsChanged}
+          <Map
+            ref={mapRef}
+            parkingSpots={parkingSpots}
+            onBoundsChanged={handleBoundsChange}
             isUpdating={isUpdating}
+            selectedSpot={selectedSpot}
           />
         </div>
       </div>
