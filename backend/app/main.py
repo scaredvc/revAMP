@@ -1,28 +1,25 @@
-import json
-from typing import Dict
-
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
-from pydantic import BaseModel
 from slowapi.errors import RateLimitExceeded
 from slowapi.middleware import SlowAPIMiddleware
 from app.core.shared import limiter
-
-from app.services.search_zones import search_zones
-from app.services.get_description import get_description
-from app.services.filter_by_zone import filter_by_zone
+from app.core.config import settings
+from app.core.logging import logger
 from app.routers.health import router as health_router
 from app.routers.zones import router as zones_router
 
 
-app = FastAPI(title="revAMP API", version="1.0.0")
+# Initialize logging
+logger.info("Starting revAMP API server")
 
-# CORS – keep permissive for now to match previous Flask CORS behavior
+app = FastAPI(title=settings.API_TITLE, version=settings.API_VERSION)
+
+# CORS configuration
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
+    allow_origins=settings.cors_origins_list,
+    allow_credentials=settings.CORS_ALLOW_CREDENTIALS,
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -44,34 +41,7 @@ async def rate_limit_handler(request: Request, exc: RateLimitExceeded):
     )
 
 
-DEFAULT_BOUNDS: Dict[str, float] = {
-    "left_long": -121.75565688680798,
-    "right_long": -121.73782556127698,
-    "top_lat": 38.53997670732033,
-    "bottom_lat": 38.52654855404775,
-}
 
-
-class Bounds(BaseModel):
-    left_long: float
-    right_long: float
-    top_lat: float
-    bottom_lat: float
-
-
-def update_parking_spots(bounds: Dict[str, float]):
-    zones_text = search_zones(
-        bounds["left_long"],
-        bounds["right_long"],
-        bounds["top_lat"],
-        bounds["bottom_lat"],
-    )
-    zones_json = json.loads(zones_text)
-    locations = zones_json["zones"]
-
-    parking_spots: Dict[str, dict] = {}
-    get_description(parking_spots, locations)
-    return parking_spots
 
 app.include_router(health_router)
 app.include_router(zones_router)
