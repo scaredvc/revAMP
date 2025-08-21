@@ -36,15 +36,8 @@ const Map = forwardRef(({ parkingSpots, onBoundsChanged, selectedSpot, isUpdatin
 
   useEffect(() => {
     const initMap = async () => {
-      console.log('Initializing Google Maps...');
-      console.log('API Key exists:', !!process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY);
-      console.log('API Key value:', process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY);
-      
-      if (!process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY) {
-        console.error('No Google Maps API key found!');
-        return;
-      }
-      
+      if (!process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY) return;
+
       try {
         const loader = new Loader({
           apiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY,
@@ -52,7 +45,6 @@ const Map = forwardRef(({ parkingSpots, onBoundsChanged, selectedSpot, isUpdatin
         });
 
         const google = await loader.load();
-        console.log('Google Maps loaded successfully:', google);
         setGoogleMaps(google);
       } catch (error) {
         console.error('Failed to load Google Maps:', error);
@@ -63,59 +55,26 @@ const Map = forwardRef(({ parkingSpots, onBoundsChanged, selectedSpot, isUpdatin
   }, []);
 
   useEffect(() => {
-    console.log('Map init effect - googleMaps:', !!googleMaps, 'mapRef.current:', !!mapRef.current, 'mapInstance:', !!mapInstance);
-    
     if (!googleMaps || !mapRef.current) return;
 
     if (!mapInstance) {
-      console.log('Creating new map instance...');
-      // Initialize map with default center (can be anywhere, will be updated when data arrives)
       const map = new googleMaps.maps.Map(mapRef.current, {
-        center: { 
-          lat: 40.7128, // Default to NYC coordinates
-          lng: -74.0060
-        },
+        center: { lat: 40.7128, lng: -74.0060 },
         zoom: 15,
         styles: [
           {
             featureType: "all",
             elementType: "geometry",
+            stylers: [{ color: "#f5f5f5" }]
+          },
+          {
+            featureType: "road",
+            elementType: "geometry",
             stylers: [{ color: "#ffffff" }]
-          },
-          {
-            featureType: "road",
-            elementType: "geometry",
-            stylers: [{ color: "#d6d6d6" }]
-          },
-          {
-            featureType: "road",
-            elementType: "geometry.stroke",
-            stylers: [{ color: "#c9c9c9" }]
-          },
-          {
-            featureType: "road.highway",
-            elementType: "geometry",
-            stylers: [{ color: "#b3b3b3" }]
-          },
-          {
-            featureType: "water",
-            elementType: "geometry",
-            stylers: [{ color: "#e9e9e9" }]
-          },
-          {
-            featureType: "poi",
-            elementType: "geometry",
-            stylers: [{ color: "#f0f0f0" }]
-          },
-          {
-            featureType: "all",
-            elementType: "labels.text.fill",
-            stylers: [{ color: "#333333" }]
           }
         ]
       });
 
-      console.log('Map created successfully:', map);
       setMapInstance(map);
 
       map.addListener('dragstart', () => {
@@ -138,12 +97,7 @@ const Map = forwardRef(({ parkingSpots, onBoundsChanged, selectedSpot, isUpdatin
           const ne = bounds.getNorthEast();
           const sw = bounds.getSouthWest();
           
-          console.log('Map moved, fetching new data for bounds:', {
-            left_long: sw.lng(),
-            right_long: ne.lng(),
-            top_lat: ne.lat(),
-            bottom_lat: sw.lat()
-          });
+
           
           onBoundsChanged({
             left_long: sw.lng(),
@@ -170,12 +124,7 @@ const Map = forwardRef(({ parkingSpots, onBoundsChanged, selectedSpot, isUpdatin
           const ne = bounds.getNorthEast();
           const sw = bounds.getSouthWest();
           
-          console.log('Map zoomed, fetching new data for bounds:', {
-            left_long: sw.lng(),
-            right_long: ne.lng(),
-            top_lat: ne.lat(),
-            bottom_lat: sw.lat()
-          });
+
           
           onBoundsChanged({
             left_long: sw.lng(),
@@ -197,8 +146,6 @@ const Map = forwardRef(({ parkingSpots, onBoundsChanged, selectedSpot, isUpdatin
 
   // Separate effect to center map when parking spots data arrives
   useEffect(() => {
-    console.log('Parking spots effect - mapInstance:', !!mapInstance, 'parkingSpots.length:', parkingSpots.length);
-    
     if (!mapInstance || !parkingSpots.length) return;
 
     // Only center the map if it hasn't been centered yet (first load)
@@ -211,21 +158,15 @@ const Map = forwardRef(({ parkingSpots, onBoundsChanged, selectedSpot, isUpdatin
       );
 
       if (validSpot) {
-        console.log('Centering map on first parking spot:', validSpot.name, 'at:', validSpot.coordinates[0]);
-        // Center the map on the first valid parking spot only on initial load
         mapInstance.setCenter(validSpot.coordinates[0]);
-      } else {
-        console.log('No valid parking spot found for centering');
       }
-    } else {
-      console.log('Map already centered, skipping recentering');
     }
   }, [parkingSpots, mapInstance]);
 
   useEffect(() => {
     if (!mapInstance || !googleMaps || !parkingSpots.length) return;
 
-    console.log('Creating markers for', parkingSpots.length, 'parking spots');
+
 
     if (activeInfoWindow.current) {
       activeInfoWindow.current.close();
@@ -294,7 +235,6 @@ const Map = forwardRef(({ parkingSpots, onBoundsChanged, selectedSpot, isUpdatin
         });
 
         markersRef.current[spot.name] = marker;
-        console.log('Created marker for:', spot.name);
       } catch (error) {
         console.error('Error creating marker for', spot.name, ':', error);
       }

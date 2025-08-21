@@ -19,13 +19,9 @@ export default function MapApp({ parkingSpots, onBoundsChanged, isUpdating }) {
     }
   };
 
-  // Simple bounds change handler
   const handleBoundsChange = useCallback((bounds) => {
-    console.log("🚨 MAP BOUNDS CHANGED EVENT");
     onBoundsChanged(bounds);
   }, [onBoundsChanged]);
-
-
 
   return (
     <div className="main-container">
