@@ -15,7 +15,7 @@ from app.schemas.zones import (
 )
 from app.services.search_zones import search_zones
 from app.services.filter_by_zone import filter_by_zone
-from app.services.get_description import get_description
+from app.services.get_description import get_description, clean_description
 from app.core.shared import limiter, DEFAULT_BOUNDS, CITY_BOUNDS, get_bounds_info
 from app.core.logging import logger
 
@@ -140,6 +140,12 @@ def get_raw_zones(request: Request):
         )
         # Convert Pydantic models to dict for JSON serialization
         zones_dict = [zone.dict() for zone in zones_response.zones]
+
+        # Clean descriptions in raw zones data
+        for zone in zones_dict:
+            zone["description"] = clean_description(zone.get("description", ""))
+            zone["ext_description"] = clean_description(zone.get("ext_description", ""))
+            zone["additional_info"] = clean_description(zone.get("additional_info", ""))
         return {"zones": zones_dict}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -154,7 +160,8 @@ def get_zones(request: Request):
         CITY_BOUNDS["top_lat"],
         CITY_BOUNDS["bottom_lat"],
     )
-    descriptions = [zone.description for zone in zones_response.zones]
+    # Clean descriptions using the same cleaning function
+    descriptions = [clean_description(zone.description) for zone in zones_response.zones]
     return ZonesListResponse(zones=descriptions)
 
 @router.get("/api/filter/description_to_zones")
@@ -162,5 +169,5 @@ def get_zones(request: Request):
 def get_description_to_zones(request: Request):
     """Get mapping of zone descriptions to zone codes"""
     all_zones_data = get_raw_zones(request)
-    zones = {zone["description"]: zone["code"] for zone in all_zones_data["zones"]}
+    zones = {clean_description(zone["description"]): zone["code"] for zone in all_zones_data["zones"]}
     return zones
