@@ -46,6 +46,17 @@ class Settings:
         "bottom_lat": float(os.getenv("CITY_BOTTOM_LAT", "38.52")),
     }
 
+    # Database Configuration
+    DATABASE_URL: str = os.getenv("DATABASE_URL", "sqlite:///./revamp.db")
+    SECRET_KEY: str = os.getenv("SECRET_KEY", "your-secret-key-here-change-in-production")
+    ALGORITHM: str = os.getenv("ALGORITHM", "HS256")
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "30"))
+
+    # Payment Configuration (Optional - can be added later)
+    # STRIPE_PUBLIC_KEY: str = os.getenv("STRIPE_PUBLIC_KEY", "")
+    # STRIPE_SECRET_KEY: str = os.getenv("STRIPE_SECRET_KEY", "")
+    # STRIPE_WEBHOOK_SECRET: str = os.getenv("STRIPE_WEBHOOK_SECRET", "")
+
     @property
     def cors_origins_list(self) -> list:
         """Parse CORS origins from environment variable"""

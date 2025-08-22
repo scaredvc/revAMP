@@ -6,8 +6,14 @@ from slowapi.middleware import SlowAPIMiddleware
 from app.core.shared import limiter
 from app.core.config import settings
 from app.core.logging import logger
+# from app.core.database import engine  # Commented out - no database yet
+# from app.models.base import Base  # Commented out - no database yet
 from app.routers.health import router as health_router
 from app.routers.zones import router as zones_router
+# from app.routers.auth import router as auth_router  # Commented out - needs database
+# from app.routers.parking_history import router as parking_history_router  # Commented out - needs database
+# from app.routers.favorites import router as favorites_router  # Commented out - needs database
+# from app.routers.payments import router as payments_router  # Commented out - no payments yet
 
 
 # Initialize logging
@@ -43,5 +49,12 @@ async def rate_limit_handler(request: Request, exc: RateLimitExceeded):
 
 
 
+# Create database tables
+# Base.metadata.create_all(bind=engine)  # Commented out - no database yet
+
 app.include_router(health_router)
 app.include_router(zones_router)
+# app.include_router(auth_router, prefix="/auth", tags=["Authentication"])  # Commented out - needs database
+# app.include_router(parking_history_router, prefix="/parking", tags=["Parking History"])  # Commented out - needs database
+# app.include_router(favorites_router, prefix="/favorites", tags=["Favorites"])  # Commented out - needs database
+# app.include_router(payments_router, prefix="/payments", tags=["Payments"])  # Commented out - no payments yet
