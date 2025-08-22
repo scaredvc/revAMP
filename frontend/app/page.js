@@ -16,7 +16,7 @@ export default function Home() {
             setError(null);
             if (!isUpdate) setIsLoading(true);
 
-            const url = process.env.NEXT_PUBLIC_API_URL || 'https://amp-parking.onrender.com/api/data';
+            const url = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/data';
             const response = bounds
                 ? await fetch(url, {
                     method: 'POST',
@@ -56,11 +56,14 @@ export default function Home() {
     }, []);
 
     return (
-        <main className="container mx-auto p-4">
-            <h1 className="text-4xl font-bold mb-4 text-white">revAMP</h1>
+        <main className="container mx-auto p-4 bg-black min-h-screen">
+            <header className="mb-6">
+                <h1 className="text-4xl font-bold text-white mb-2">revAMP</h1>
+                <p className="text-gray-300">Find and pay for parking spots at UC Davis</p>
+            </header>
             
             {error ? (
-                <div className="text-red-500 mb-4 p-2 bg-red-50 rounded">
+                <div className="text-red-400 mb-4 p-2 bg-red-900/20 rounded">
                     <p>Error: {error}</p>
                 </div>
             ) : isLoading ? (
@@ -75,7 +78,7 @@ export default function Home() {
                         isUpdating={false}
                     />
                     {parkingSpots.length === 0 && (
-                        <div className="text-white text-center mt-4">
+                        <div className="text-gray-300 text-center mt-4">
                             <p>No parking spots found</p>
                         </div>
                     )}

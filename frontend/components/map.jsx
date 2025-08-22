@@ -65,12 +65,42 @@ const Map = forwardRef(({ parkingSpots, onBoundsChanged, selectedSpot, isUpdatin
           {
             featureType: "all",
             elementType: "geometry",
-            stylers: [{ color: "#f5f5f5" }]
+            stylers: [{ color: "#2d3748" }]
           },
           {
             featureType: "road",
             elementType: "geometry",
+            stylers: [{ color: "#4a5568" }]
+          },
+          {
+            featureType: "road",
+            elementType: "labels.text.fill",
             stylers: [{ color: "#ffffff" }]
+          },
+          {
+            featureType: "road",
+            elementType: "labels.text.stroke",
+            stylers: [{ color: "#1a1a1a" }, { weight: 1 }]
+          },
+          {
+            featureType: "water",
+            elementType: "geometry",
+            stylers: [{ color: "#1a365d" }]
+          },
+          {
+            featureType: "poi",
+            elementType: "labels.text.fill",
+            stylers: [{ color: "#f1f5f9" }]
+          },
+          {
+            featureType: "poi",
+            elementType: "labels.text.stroke",
+            stylers: [{ color: "#1a1a1a" }, { weight: 1 }]
+          },
+          {
+            featureType: "landscape",
+            elementType: "geometry",
+            stylers: [{ color: "#374151" }]
           }
         ]
       });
@@ -178,35 +208,55 @@ const Map = forwardRef(({ parkingSpots, onBoundsChanged, selectedSpot, isUpdatin
 
     parkingSpots.forEach((spot) => {
       try {
+        // Create custom marker icon - showing as available for user experience
+        const markerIcon = {
+          url: `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(`
+            <svg width="32" height="32" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="16" cy="16" r="14" fill="#10B981" stroke="white" stroke-width="3"/>
+              <circle cx="16" cy="16" r="8" fill="white" opacity="0.9"/>
+              <path d="M12 16l3 3 5-5" stroke="#10B981" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          `)}`,
+          scaledSize: new google.maps.Size(32, 32),
+          anchor: new google.maps.Point(16, 16)
+        };
+
         const marker = new googleMaps.maps.Marker({
           map: mapInstance,
           position: spot.coordinates[0],
           title: spot.name,
-          icon: {
-            path: googleMaps.maps.SymbolPath.CIRCLE,
-            scale: 10,
-            fillColor: "#FF7B7B",
-            fillOpacity: 0.7,
-            strokeWeight: 2,
-            strokeColor: "rgba(255, 123, 123, 0.2)",
-          }
+          icon: markerIcon,
+          animation: google.maps.Animation.DROP
         });
 
         const contentString = `
-          <div class="info-window" style="max-width: 300px; padding: 10px;">
-            <h3 style="font-size: 16px; font-weight: bold; margin-bottom: 8px;">
-              ${spot.name}
-            </h3>
-            ${spot.description ? `
-              <p style="margin-bottom: 8px; font-size: 14px;">
-                ${spot.description}
-              </p>
-            ` : ''}
-            ${spot.additionalInfo ? `
-              <div style="font-size: 13px; color: #666;">
-                ${spot.additionalInfo}
+          <div class="info-window">
+            <div class="info-header">
+              <div class="info-title-section">
+                <h3 class="info-title">${spot.name}</h3>
+                <div class="info-status">
+                  <span class="status-badge available">Available</span>
+                </div>
               </div>
-            ` : ''}
+            </div>
+            <div class="info-content">
+              ${spot.description ? `
+                <p class="info-description">${spot.description}</p>
+              ` : ''}
+              ${spot.additionalInfo ? `
+                <div class="info-details">
+                  <span class="detail-item">${spot.additionalInfo}</span>
+                </div>
+              ` : ''}
+            </div>
+            <div class="info-footer">
+              <button class="info-button primary" onclick="window.dispatchEvent(new CustomEvent('getDirections', {detail: '${spot.name}'}))">
+                Get Directions
+              </button>
+              <button class="info-button secondary" onclick="window.dispatchEvent(new CustomEvent('viewDetails', {detail: '${spot.name}'}))">
+                View Details
+              </button>
+            </div>
           </div>
         `;
 
@@ -255,9 +305,12 @@ const Map = forwardRef(({ parkingSpots, onBoundsChanged, selectedSpot, isUpdatin
     <div className="relative">
       <div className="map-container" ref={mapRef} />
       {isUpdating && (
-        <div className="absolute top-4 right-4 bg-white bg-opacity-95 rounded-lg px-4 py-3 shadow-lg z-10 border border-gray-200">
+        <div className="absolute top-4 right-4 bg-white bg-opacity-95 rounded-xl px-4 py-3 shadow-lg z-10 border border-gray-200 backdrop-blur-sm">
           <div className="flex items-center space-x-3">
-            <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-600"></div>
+            <div className="relative">
+              <div className="animate-spin rounded-full h-5 w-5 border-2 border-gray-300"></div>
+              <div className="absolute inset-0 animate-spin rounded-full h-5 w-5 border-2 border-blue-600 border-t-transparent"></div>
+            </div>
             <div>
               <span className="text-sm font-medium text-gray-800">Updating map data...</span>
               <p className="text-xs text-gray-600 mt-1">New parking spots are being loaded</p>
@@ -266,10 +319,13 @@ const Map = forwardRef(({ parkingSpots, onBoundsChanged, selectedSpot, isUpdatin
         </div>
       )}
       {!isUpdating && parkingSpots.length === 0 && mapInstance && (
-        <div className="absolute top-4 left-4 bg-yellow-50 bg-opacity-95 rounded-lg px-3 py-2 shadow-lg z-10 border border-yellow-200">
-          <div className="flex items-center space-x-2">
-            <div className="w-2 h-2 bg-yellow-400 rounded-full"></div>
-            <span className="text-xs text-yellow-800">No parking spots in this area</span>
+        <div className="absolute top-4 left-4 bg-amber-50 bg-opacity-95 rounded-xl px-4 py-3 shadow-lg z-10 border border-amber-200 backdrop-blur-sm">
+          <div className="flex items-center space-x-3">
+            <div className="w-3 h-3 bg-amber-400 rounded-full animate-pulse"></div>
+            <div>
+              <span className="text-sm font-medium text-amber-800">No parking spots found</span>
+              <p className="text-xs text-amber-600 mt-1">Try zooming out or moving to a different area</p>
+            </div>
           </div>
         </div>
       )}
