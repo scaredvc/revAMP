@@ -35,6 +35,8 @@ export default function MapApp({ parkingSpots, onBoundsChanged, isUpdating }) {
     setSearchQuery(e.target.value);
   };
 
+
+
   const handleGetDirections = useCallback((spot) => {
     // Frontend-only approach: direct URL generation
     if (!spot.coordinates || spot.coordinates.length === 0) {
@@ -119,9 +121,6 @@ export default function MapApp({ parkingSpots, onBoundsChanged, isUpdating }) {
               </div>
 
               <div className="spot-footer">
-                <button className="action-button primary">
-                  View on Map
-                </button>
                 <button
                   className="action-button secondary"
                   onClick={() => handleGetDirections(spot)}
