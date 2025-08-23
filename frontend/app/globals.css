@@ -155,12 +155,13 @@
 }
 
 .map-wrapper {
-  @apply h-full rounded-xl overflow-hidden shadow-2xl border border-gray-700;
+  @apply rounded-xl overflow-hidden shadow-2xl border border-gray-700;
+  height: 700px; /* Fixed height instead of full height */
 }
 
 .map-container {
   @apply w-full h-full rounded-xl;
-  min-height: 500px;
+  min-height: 700px; /* Reduced to fit within the 500px wrapper */
   background: #1a1a1a; /* Dark fallback background */
 }
 
