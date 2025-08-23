@@ -35,6 +35,36 @@ export default function MapApp({ parkingSpots, onBoundsChanged, isUpdating }) {
     setSearchQuery(e.target.value);
   };
 
+  const handleGetDirections = useCallback((spot) => {
+    // Frontend-only approach: direct URL generation
+    if (!spot.coordinates || spot.coordinates.length === 0) {
+      // Try to use the zone name as destination for Google Maps search
+      const searchQuery = encodeURIComponent(`${spot.name} UC Davis`);
+      const googleMapsUrl = `https://www.google.com/maps/search/?api=1&query=${searchQuery}`;
+      window.open(googleMapsUrl, '_blank');
+      return;
+    }
+
+    // Use available coordinates
+    const { lat, lng } = spot.coordinates[0];
+    const googleMapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`;
+    window.open(googleMapsUrl, '_blank');
+  }, []);
+
+  // Handle directions requests from map markers
+  useEffect(() => {
+    const handleMapDirections = (event) => {
+      const spotName = event.detail;
+      const spot = parkingSpots.find(s => s.name === spotName);
+      if (spot) {
+        handleGetDirections(spot);
+      }
+    };
+
+    window.addEventListener('getDirections', handleMapDirections);
+    return () => window.removeEventListener('getDirections', handleMapDirections);
+  }, [parkingSpots, handleGetDirections]);
+
   return (
     <div className="main-container">
       <div className="sidebar">
@@ -92,7 +122,10 @@ export default function MapApp({ parkingSpots, onBoundsChanged, isUpdating }) {
                 <button className="action-button primary">
                   View on Map
                 </button>
-                <button className="action-button secondary">
+                <button
+                  className="action-button secondary"
+                  onClick={() => handleGetDirections(spot)}
+                >
                   Get Directions
                 </button>
               </div>
