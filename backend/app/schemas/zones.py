@@ -57,6 +57,40 @@ class ErrorResponse(BaseModel):
     message: str
 
 
+class SearchEvent(BaseModel):
+    zone_code: str
+    zone_name: str
+    timestamp: str
+    client_ip: Optional[str] = None
+    user_agent: Optional[str] = None
+
+
+class AnalyticsResponse(BaseModel):
+    total_searches: int
+    unique_zones_searched: int
+    popular_zones: Dict[str, int]  # zone_code -> search_count
+    recent_searches: List[SearchEvent]
+    search_trends: Dict[str, int]  # hourly search distribution
+    peak_hours: List[str]  # most active hours
+
+
+class ZoneAnalytics(BaseModel):
+    zone_code: str
+    zone_name: str
+    search_count: int
+    directions_requested: int
+    last_accessed: Optional[str] = None
+    coordinates: Optional[List[float]] = None
+
+
+class UserSession(BaseModel):
+    session_id: str
+    searches: List[SearchEvent]
+    total_searches: int
+    first_visit: str
+    last_visit: str
+
+
 # External API Response Validation Models
 class ExternalZonePosition(BaseModel):
     lat: float

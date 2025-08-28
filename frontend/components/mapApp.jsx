@@ -13,7 +13,25 @@ export default function MapApp({ parkingSpots, onBoundsChanged, isUpdating }) {
   const [searchQuery, setSearchQuery] = useState('');
   const mapRef = useRef(null);
 
-  const handleSpotClick = (spot) => {
+  const handleSpotClick = async (spot) => {
+    // Track search analytics when user clicks on a zone
+    console.log('Tracking search for zone:', spot.name);
+    try {
+      const response = await fetch(`http://localhost:8000/api/analytics/search/${encodeURIComponent(spot.name)}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+      });
+
+      if (response.ok) {
+        console.log('Search analytics tracked successfully');
+      } else {
+        console.warn('Search analytics failed:', response.status, response.statusText);
+      }
+    } catch (error) {
+      console.warn('Analytics tracking error:', error);
+    }
+
+    // Original functionality
     setSelectedSpot(spot);
     if (mapRef.current) {
       mapRef.current.focusSpot(spot);
@@ -37,20 +55,47 @@ export default function MapApp({ parkingSpots, onBoundsChanged, isUpdating }) {
 
 
 
-  const handleGetDirections = useCallback((spot) => {
-    // Frontend-only approach: direct URL generation
-    if (!spot.coordinates || spot.coordinates.length === 0) {
-      // Try to use the zone name as destination for Google Maps search
-      const searchQuery = encodeURIComponent(`${spot.name} UC Davis`);
-      const googleMapsUrl = `https://www.google.com/maps/search/?api=1&query=${searchQuery}`;
-      window.open(googleMapsUrl, '_blank');
-      return;
-    }
+  const handleGetDirections = useCallback(async (spot) => {
+    try {
+      // Track directions request for analytics
+      console.log('Tracking directions for zone:', spot.name);
+      const response = await fetch(`http://localhost:8000/api/analytics/directions/${encodeURIComponent(spot.name)}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+      });
 
-    // Use available coordinates
-    const { lat, lng } = spot.coordinates[0];
-    const googleMapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`;
-    window.open(googleMapsUrl, '_blank');
+      if (response.ok) {
+        console.log('Directions analytics tracked successfully');
+      } else {
+        console.warn('Directions analytics failed:', response.status, response.statusText);
+      }
+
+      // Frontend-only approach: direct URL generation
+      if (!spot.coordinates || spot.coordinates.length === 0) {
+        // Try to use the zone name as destination for Google Maps search
+        const searchQuery = encodeURIComponent(`${spot.name} UC Davis`);
+        const googleMapsUrl = `https://www.google.com/maps/search/?api=1&query=${searchQuery}`;
+        window.open(googleMapsUrl, '_blank');
+        return;
+      }
+
+      // Use available coordinates
+      const { lat, lng } = spot.coordinates[0];
+      const googleMapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`;
+      window.open(googleMapsUrl, '_blank');
+    } catch (error) {
+      console.error('Error in directions:', error);
+      // Fallback to basic functionality even if analytics fails
+      if (!spot.coordinates || spot.coordinates.length === 0) {
+        const searchQuery = encodeURIComponent(`${spot.name} UC Davis`);
+        const googleMapsUrl = `https://www.google.com/maps/search/?api=1&query=${searchQuery}`;
+        window.open(googleMapsUrl, '_blank');
+      } else {
+        const { lat, lng } = spot.coordinates[0];
+        const googleMapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`;
+        window.open(googleMapsUrl, '_blank');
+      }
+    }
   }, []);
 
   // Handle directions requests from map markers

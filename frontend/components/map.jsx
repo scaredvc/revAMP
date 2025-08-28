@@ -265,16 +265,26 @@ const Map = forwardRef(({ parkingSpots, onBoundsChanged, selectedSpot, isUpdatin
           maxWidth: 300
         });
 
-        marker.addListener('click', () => {
+        marker.addListener('click', async () => {
           if (activeInfoWindow.current) {
             activeInfoWindow.current.close();
           }
-          
+
+          // Track search analytics when user clicks on map marker
+          try {
+            await fetch(`http://localhost:8000/api/analytics/search/${encodeURIComponent(spot.name)}`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' }
+            }).catch(error => console.warn('Map marker analytics tracking failed:', error));
+          } catch (error) {
+            console.warn('Map marker analytics tracking failed:', error);
+          }
+
           infoWindow.open({
             anchor: marker,
             map: mapInstance
           });
-          
+
           activeInfoWindow.current = infoWindow;
         });
 
