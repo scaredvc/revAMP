@@ -38,17 +38,18 @@ const Map = forwardRef(({ parkingSpots, onBoundsChanged, selectedSpot, isUpdatin
     const initMap = async () => {
       console.log('Map init starting...');
 
-      if (!process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY) {
-        console.error('No Google Maps API key found!');
-        return;
-      }
+      // TEMPORARY: Hardcoded API key for testing
+      const apiKey = 'AIzaSyBvoFf9v9wJ2A7nDwmhFMB64PtVzfitN4A '; // Replace with your actual API key
+
+      console.log('Using API key:', apiKey.substring(0, 20) + '...');
 
       try {
         const loader = new Loader({
-          apiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY,
+          apiKey: apiKey,
           version: "weekly",
         });
 
+        console.log('Loading Google Maps...');
         const google = await loader.load();
         console.log('Google Maps loaded successfully');
         setGoogleMaps(google);
