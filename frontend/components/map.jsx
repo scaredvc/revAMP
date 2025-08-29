@@ -36,25 +36,18 @@ const Map = forwardRef(({ parkingSpots, onBoundsChanged, selectedSpot, isUpdatin
 
   useEffect(() => {
     const initMap = async () => {
-      console.log('Map init starting...');
-
-      // TEMPORARY: Hardcoded API key for testing
-      const apiKey = 'AIzaSyBvoFf9v9wJ2A7nDwmhFMB64PtVzfitN4A '; // Replace with your actual API key
-
-      console.log('Using API key:', apiKey.substring(0, 20) + '...');
+      if (!process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY) return;
 
       try {
         const loader = new Loader({
-          apiKey: apiKey,
+          apiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY,
           version: "weekly",
         });
 
-        console.log('Loading Google Maps...');
         const google = await loader.load();
-        console.log('Google Maps loaded successfully');
         setGoogleMaps(google);
       } catch (error) {
-        console.error('Failed to load Google Maps:', error.message);
+        console.error('Failed to load Google Maps:', error);
       }
     };
 
@@ -65,8 +58,6 @@ const Map = forwardRef(({ parkingSpots, onBoundsChanged, selectedSpot, isUpdatin
     if (!googleMaps || !mapRef.current) return;
 
     if (!mapInstance) {
-      console.log('Creating map instance...');
-
       const map = new googleMaps.maps.Map(mapRef.current, {
         center: { lat: 40.7128, lng: -74.0060 },
         zoom: 15,
@@ -114,7 +105,6 @@ const Map = forwardRef(({ parkingSpots, onBoundsChanged, selectedSpot, isUpdatin
         ]
       });
 
-      console.log('Map created successfully');
       setMapInstance(map);
 
       map.addListener('dragstart', () => {
