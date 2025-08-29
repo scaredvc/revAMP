@@ -3,6 +3,8 @@ import MapApp from '../components/mapApp'
 import {useEffect, useState, useCallback} from 'react'
 
 export default function Home() {
+    console.log('🏠 Home component rendered');
+
     const [parkingSpots, setParkingSpots] = useState([])
     const [error, setError] = useState(null)
     const [isLoading, setIsLoading] = useState(true)

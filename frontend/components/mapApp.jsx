@@ -9,6 +9,8 @@ const Map = dynamic(
 )
 
 export default function MapApp({ parkingSpots, onBoundsChanged, isUpdating }) {
+  console.log('🗺️ MapApp component rendered with', parkingSpots.length, 'spots');
+
   const [selectedSpot, setSelectedSpot] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const mapRef = useRef(null);
