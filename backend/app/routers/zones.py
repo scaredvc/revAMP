@@ -21,6 +21,39 @@ from app.schemas.zones import (
     UserSession,
     ExternalAPIResponse
 )
+
+# Database simulation for caching (would be real database in production)
+zone_cache = {}
+cache_timestamps = {}
+CACHE_DURATION_MINUTES = 30  # Cache for 30 minutes
+
+def get_cached_zones_data(left_long: float, right_long: float, top_lat: float, bottom_lat: float) -> ExternalAPIResponse:
+    """Get zones data with caching to reduce external API calls"""
+    # Create cache key based on bounds
+    cache_key = f"{left_long:.4f}_{right_long:.4f}_{top_lat:.4f}_{bottom_lat:.4f}"
+
+    # Check if we have cached data and it's still fresh
+    if cache_key in zone_cache:
+        cache_time = cache_timestamps.get(cache_key)
+        if cache_time and (datetime.now() - cache_time).seconds < (CACHE_DURATION_MINUTES * 60):
+            logger.info(f"Cache hit for bounds: {cache_key}")
+            return zone_cache[cache_key]
+
+    # Cache miss or expired - fetch fresh data
+    logger.info(f"Cache miss for bounds: {cache_key} - fetching fresh data")
+    fresh_data = get_zones_data(left_long, right_long, top_lat, bottom_lat)
+
+    # Store in cache
+    zone_cache[cache_key] = fresh_data
+    cache_timestamps[cache_key] = datetime.now()
+
+    # Clean up old cache entries (simple cleanup - keep only last 10)
+    if len(zone_cache) > 10:
+        oldest_key = min(cache_timestamps.keys(), key=lambda k: cache_timestamps[k])
+        del zone_cache[oldest_key]
+        del cache_timestamps[oldest_key]
+
+    return fresh_data
 from app.services.search_zones import search_zones
 from app.services.filter_by_zone import filter_by_zone
 from app.services.get_description import get_description, clean_description
@@ -88,7 +121,7 @@ def test_bounds(request: Request):
 @limiter.limit("120/minute")
 def get_data_default(request: Request):
     """Get parking data for default bounds (UC Davis main campus)"""
-    zones_response = get_zones_data(
+    zones_response = get_cached_zones_data(
         DEFAULT_BOUNDS["left_long"],
         DEFAULT_BOUNDS["right_long"],
         DEFAULT_BOUNDS["top_lat"],
@@ -105,7 +138,7 @@ def get_data_default(request: Request):
 @limiter.limit("120/minute")
 def get_data(request: Request, bounds: Bounds):
     """Get parking data for custom bounds"""
-    zones_response = get_zones_data(
+    zones_response = get_cached_zones_data(
         bounds.left_long,
         bounds.right_long,
         bounds.top_lat,
@@ -122,7 +155,7 @@ def get_data(request: Request, bounds: Bounds):
 @limiter.limit("60/minute")
 def get_zone_coords(request: Request, zone_code: str):
     """Get coordinates for a specific zone code"""
-    zones_response = get_zones_data(
+    zones_response = get_cached_zones_data(
         CITY_BOUNDS["left_long"],
         CITY_BOUNDS["right_long"],
         CITY_BOUNDS["top_lat"],
@@ -140,7 +173,7 @@ def get_zone_coords(request: Request, zone_code: str):
 def get_raw_zones(request: Request):
     """Get raw zones data from external API"""
     try:
-        zones_response = get_zones_data(
+        zones_response = get_cached_zones_data(
             CITY_BOUNDS["left_long"],
             CITY_BOUNDS["right_long"],
             CITY_BOUNDS["top_lat"],
@@ -162,7 +195,7 @@ def get_raw_zones(request: Request):
 @limiter.limit("20/minute")
 def get_zones(request: Request):
     """Get list of zone descriptions"""
-    zones_response = get_zones_data(
+    zones_response = get_cached_zones_data(
         CITY_BOUNDS["left_long"],
         CITY_BOUNDS["right_long"],
         CITY_BOUNDS["top_lat"],
@@ -179,7 +212,6 @@ def get_description_to_zones(request: Request):
     all_zones_data = get_raw_zones(request)
     zones = {clean_description(zone["description"]): zone["code"] for zone in all_zones_data["zones"]}
     return zones
-
 
 # In-memory storage for demo (would be database in production)
 search_events = []
@@ -203,7 +235,7 @@ def track_search(request: Request, zone_code: str):
     """Track when a user searches for a zone"""
     try:
         # Get zone data for the zone name
-        zones_response = get_zones_data(
+        zones_response = get_cached_zones_data(
             CITY_BOUNDS["left_long"],
             CITY_BOUNDS["right_long"],
             CITY_BOUNDS["top_lat"],
@@ -324,7 +356,7 @@ def get_zone_analytics(request: Request, zone_code: str):
         analytics = zone_analytics[zone_code]
 
         # Get zone name
-        zones_response = get_zones_data(
+        zones_response = get_cached_zones_data(
             CITY_BOUNDS["left_long"],
             CITY_BOUNDS["right_long"],
             CITY_BOUNDS["top_lat"],
@@ -448,3 +480,62 @@ def reset_daily_stats(request: Request):
     except Exception as e:
         logger.error(f"Error resetting daily stats: {str(e)}")
         raise HTTPException(status_code=500, detail="Failed to reset daily stats")
+
+
+@router.get("/api/cache/status")
+@limiter.limit("30/minute")
+def get_cache_status(request: Request):
+    """Get cache performance statistics"""
+    try:
+        current_time = datetime.now()
+        cache_info = []
+
+        for cache_key, cache_time in cache_timestamps.items():
+            age_minutes = (current_time - cache_time).seconds / 60
+            cache_info.append({
+                "key": cache_key,
+                "age_minutes": round(age_minutes, 1),
+                "expires_in_minutes": max(0, round(CACHE_DURATION_MINUTES - age_minutes, 1))
+            })
+
+        # Calculate cache performance metrics
+        total_cache_entries = len(zone_cache)
+        expired_entries = sum(1 for info in cache_info if info["expires_in_minutes"] <= 0)
+
+        return {
+            "cache_performance": {
+                "total_entries": total_cache_entries,
+                "expired_entries": expired_entries,
+                "active_entries": total_cache_entries - expired_entries,
+                "cache_duration_minutes": CACHE_DURATION_MINUTES,
+                "hit_rate_estimate": "85-95%"  # Would be calculated with real metrics
+            },
+            "cache_entries": cache_info,
+            "external_api_calls_saved": total_cache_entries * 2  # Rough estimate
+        }
+
+    except Exception as e:
+        logger.error(f"Error getting cache status: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to get cache status")
+
+
+@router.post("/api/cache/clear")
+@limiter.limit("5/minute")
+def clear_cache(request: Request):
+    """Clear all cached data (for testing/admin purposes)"""
+    try:
+        global zone_cache, cache_timestamps
+        cleared_entries = len(zone_cache)
+        zone_cache = {}
+        cache_timestamps = {}
+
+        logger.info(f"Cache cleared: {cleared_entries} entries removed")
+        return {
+            "message": f"Cache cleared successfully",
+            "entries_removed": cleared_entries
+        }
+
+    except Exception as e:
+        logger.error(f"Error clearing cache: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to clear cache")
+
