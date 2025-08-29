@@ -17,7 +17,7 @@ export default function MapApp({ parkingSpots, onBoundsChanged, isUpdating }) {
     // Track search analytics when user clicks on a zone
     console.log('Tracking search for zone:', spot.name);
     try {
-      const response = await fetch(`http://localhost:8000/api/analytics/search/${encodeURIComponent(spot.name)}`, {
+      const response = await fetch(`https://amp-parking.onrender.com/api/analytics/search/${encodeURIComponent(spot.name)}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' }
       });
@@ -59,7 +59,7 @@ export default function MapApp({ parkingSpots, onBoundsChanged, isUpdating }) {
     try {
       // Track directions request for analytics
       console.log('Tracking directions for zone:', spot.name);
-      const response = await fetch(`http://localhost:8000/api/analytics/directions/${encodeURIComponent(spot.name)}`, {
+      const response = await fetch(`https://amp-parking.onrender.com/api/analytics/directions/${encodeURIComponent(spot.name)}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' }
       });

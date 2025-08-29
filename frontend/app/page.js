@@ -16,7 +16,7 @@ export default function Home() {
             setError(null);
             if (!isUpdate) setIsLoading(true);
 
-            const url = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/data';
+            const url = process.env.NEXT_PUBLIC_API_URL || 'https://amp-parking.onrender.com/api/data';
             const response = bounds
                 ? await fetch(url, {
                     method: 'POST',
