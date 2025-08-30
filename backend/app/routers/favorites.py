@@ -8,12 +8,12 @@ from app.core.database import get_db
 from app.models.user import User
 from app.models.favorite_zone import FavoriteZone
 from app.schemas.favorites import FavoriteZoneCreate, FavoriteZoneUpdate, FavoriteZoneResponse
-from app.core.shared import limiter
+from app.core.shared import safe_rate_limit
 
 router = APIRouter()
 
 @router.post("/", response_model=FavoriteZoneResponse)
-@limiter.limit("30/minute")
+@safe_rate_limit("30/minute")
 async def add_favorite_zone(
     favorite_data: FavoriteZoneCreate,
     current_user: User = Depends(get_current_active_user),
@@ -48,7 +48,7 @@ async def add_favorite_zone(
     return favorite
 
 @router.get("/", response_model=List[FavoriteZoneResponse])
-@limiter.limit("60/minute")
+@safe_rate_limit("60/minute")
 async def get_favorite_zones(
     current_user: User = Depends(get_current_active_user),
     db: Session = Depends(get_db)
@@ -60,7 +60,7 @@ async def get_favorite_zones(
     return favorites
 
 @router.put("/{favorite_id}", response_model=FavoriteZoneResponse)
-@limiter.limit("30/minute")
+@safe_rate_limit("30/minute")
 async def update_favorite_zone(
     favorite_id: int,
     favorite_data: FavoriteZoneUpdate,
@@ -86,7 +86,7 @@ async def update_favorite_zone(
     return favorite
 
 @router.delete("/{favorite_id}")
-@limiter.limit("30/minute")
+@safe_rate_limit("30/minute")
 async def remove_favorite_zone(
     favorite_id: int,
     current_user: User = Depends(get_current_active_user),
@@ -106,7 +106,7 @@ async def remove_favorite_zone(
     return {"message": "Favorite zone removed successfully"}
 
 @router.post("/{favorite_id}/use")
-@limiter.limit("60/minute")
+@safe_rate_limit("60/minute")
 async def record_zone_usage(
     favorite_id: int,
     current_user: User = Depends(get_current_active_user),

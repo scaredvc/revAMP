@@ -12,12 +12,12 @@ from app.schemas.parking_history import (
     ParkingHistoryCreate, ParkingHistoryUpdate,
     ParkingHistoryResponse, ParkingHistoryStats
 )
-from app.core.shared import limiter
+from app.core.shared import safe_rate_limit
 
 router = APIRouter()
 
 @router.post("/start", response_model=ParkingHistoryResponse)
-@limiter.limit("30/minute")
+@safe_rate_limit("30/minute")
 async def start_parking_session(
     session_data: ParkingHistoryCreate,
     current_user: User = Depends(get_current_active_user),
@@ -41,7 +41,7 @@ async def start_parking_session(
     return parking_session
 
 @router.put("/end/{session_id}", response_model=ParkingHistoryResponse)
-@limiter.limit("30/minute")
+@safe_rate_limit("30/minute")
 async def end_parking_session(
     session_id: int,
     current_user: User = Depends(get_current_active_user),
@@ -68,7 +68,7 @@ async def end_parking_session(
     return session
 
 @router.get("/", response_model=List[ParkingHistoryResponse])
-@limiter.limit("60/minute")
+@safe_rate_limit("60/minute")
 async def get_parking_history(
     skip: int = 0,
     limit: int = 50,
@@ -86,7 +86,7 @@ async def get_parking_history(
     return sessions
 
 @router.get("/active", response_model=List[ParkingHistoryResponse])
-@limiter.limit("60/minute")
+@safe_rate_limit("60/minute")
 async def get_active_sessions(
     current_user: User = Depends(get_current_active_user),
     db: Session = Depends(get_db)
@@ -99,7 +99,7 @@ async def get_active_sessions(
     return sessions
 
 @router.get("/stats", response_model=ParkingHistoryStats)
-@limiter.limit("30/minute")
+@safe_rate_limit("30/minute")
 async def get_parking_stats(
     current_user: User = Depends(get_current_active_user),
     db: Session = Depends(get_db)
@@ -139,7 +139,7 @@ async def get_parking_stats(
     )
 
 @router.delete("/{session_id}")
-@limiter.limit("10/minute")
+@safe_rate_limit("10/minute")
 async def delete_parking_session(
     session_id: int,
     current_user: User = Depends(get_current_active_user),

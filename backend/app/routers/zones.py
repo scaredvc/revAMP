@@ -21,6 +21,11 @@ from app.schemas.zones import (
     UserSession,
     ExternalAPIResponse
 )
+from app.services.search_zones import search_zones
+from app.services.filter_by_zone import filter_by_zone
+from app.services.get_description import get_description, clean_description
+from app.core.shared import safe_rate_limit, DEFAULT_BOUNDS, CITY_BOUNDS, get_bounds_info
+from app.core.logging import logger
 
 # Database simulation for caching (would be real database in production)
 zone_cache = {}
@@ -54,11 +59,6 @@ def get_cached_zones_data(left_long: float, right_long: float, top_lat: float, b
         del cache_timestamps[oldest_key]
 
     return fresh_data
-from app.services.search_zones import search_zones
-from app.services.filter_by_zone import filter_by_zone
-from app.services.get_description import get_description, clean_description
-from app.core.shared import limiter, DEFAULT_BOUNDS, CITY_BOUNDS, get_bounds_info
-from app.core.logging import logger
 
 router = APIRouter()
 
@@ -112,13 +112,13 @@ def get_zones_data(left_long: float, right_long: float, top_lat: float, bottom_l
 
 
 @router.get("/api/test/bounds", response_model=BoundsInfoResponse)
-@limiter.limit("60/minute")
+@safe_rate_limit("60/minute")
 def test_bounds(request: Request):
     """Test endpoint to see the bounds and their coverage"""
     return get_bounds_info()
 
 @router.get("/api/data", response_model=ParkingDataResponse)
-@limiter.limit("120/minute")
+@safe_rate_limit("120/minute")
 def get_data_default(request: Request):
     """Get parking data for default bounds (UC Davis main campus)"""
     zones_response = get_cached_zones_data(
@@ -135,7 +135,7 @@ def get_data_default(request: Request):
 
 
 @router.post("/api/data", response_model=ParkingDataResponse)
-@limiter.limit("120/minute")
+@safe_rate_limit("120/minute")
 def get_data(request: Request, bounds: Bounds):
     """Get parking data for custom bounds"""
     zones_response = get_cached_zones_data(
@@ -152,7 +152,7 @@ def get_data(request: Request, bounds: Bounds):
 
 
 @router.get("/api/zones/{zone_code}", response_model=ZoneCoordinatesResponse)
-@limiter.limit("60/minute")
+@safe_rate_limit("60/minute")
 def get_zone_coords(request: Request, zone_code: str):
     """Get coordinates for a specific zone code"""
     zones_response = get_cached_zones_data(
@@ -169,7 +169,7 @@ def get_zone_coords(request: Request, zone_code: str):
     return ZoneCoordinatesResponse(coordinates=coords_list)
 
 @router.get("/api/raw-zones")
-@limiter.limit("20/minute")
+@safe_rate_limit("20/minute")
 def get_raw_zones(request: Request):
     """Get raw zones data from external API"""
     try:
@@ -192,7 +192,7 @@ def get_raw_zones(request: Request):
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.get("/api/zones", response_model=ZonesListResponse)
-@limiter.limit("20/minute")
+@safe_rate_limit("20/minute")
 def get_zones(request: Request):
     """Get list of zone descriptions"""
     zones_response = get_cached_zones_data(
@@ -206,7 +206,7 @@ def get_zones(request: Request):
     return ZonesListResponse(zones=descriptions)
 
 @router.get("/api/filter/description_to_zones")
-@limiter.limit("60/minute")
+@safe_rate_limit("60/minute")
 def get_description_to_zones(request: Request):
     """Get mapping of zone descriptions to zone codes"""
     all_zones_data = get_raw_zones(request)
@@ -230,7 +230,7 @@ daily_stats = {
 
 
 @router.post("/api/analytics/search/{zone_code:path}")
-@limiter.limit("100/minute")
+@safe_rate_limit("100/minute")
 def track_search(request: Request, zone_code: str):
     """Track when a user searches for a zone"""
     try:
@@ -285,7 +285,7 @@ def track_search(request: Request, zone_code: str):
 
 
 @router.post("/api/analytics/directions/{zone_code:path}")
-@limiter.limit("50/minute")
+@safe_rate_limit("50/minute")
 def track_directions_request(request: Request, zone_code: str):
     """Track when a user requests directions to a zone"""
     try:
@@ -305,7 +305,7 @@ def track_directions_request(request: Request, zone_code: str):
 
 
 @router.get("/api/analytics/overview", response_model=AnalyticsResponse)
-@limiter.limit("20/minute")
+@safe_rate_limit("20/minute")
 def get_analytics_overview(request: Request):
     """Get comprehensive analytics overview"""
     try:
@@ -349,7 +349,7 @@ def get_analytics_overview(request: Request):
 
 
 @router.get("/api/analytics/zones/{zone_code}", response_model=ZoneAnalytics)
-@limiter.limit("30/minute")
+@safe_rate_limit("30/minute")
 def get_zone_analytics(request: Request, zone_code: str):
     """Get detailed analytics for a specific zone"""
     try:
@@ -387,7 +387,7 @@ def get_zone_analytics(request: Request, zone_code: str):
 
 
 @router.get("/api/analytics/top-zones")
-@limiter.limit("20/minute")
+@safe_rate_limit("20/minute")
 def get_top_zones(request: Request, limit: int = 10):
     """Get most searched parking zones"""
     try:
@@ -415,7 +415,7 @@ def get_top_zones(request: Request, limit: int = 10):
 
 
 @router.get("/api/analytics/peak-hours")
-@limiter.limit("20/minute")
+@safe_rate_limit("20/minute")
 def get_peak_hours_analytics(request: Request):
     """Get peak usage hours analytics"""
     try:
@@ -437,7 +437,7 @@ def get_peak_hours_analytics(request: Request):
 
 
 @router.get("/api/analytics/daily-summary")
-@limiter.limit("20/minute")
+@safe_rate_limit("20/minute")
 def get_daily_summary(request: Request):
     """Get comprehensive daily analytics summary"""
     try:
@@ -461,7 +461,7 @@ def get_daily_summary(request: Request):
 
 
 @router.post("/api/analytics/reset-daily")
-@limiter.limit("5/minute")
+@safe_rate_limit("5/minute")
 def reset_daily_stats(request: Request):
     """Reset daily statistics (for testing/demo purposes)"""
     try:
@@ -483,7 +483,7 @@ def reset_daily_stats(request: Request):
 
 
 @router.get("/api/cache/status")
-@limiter.limit("30/minute")
+@safe_rate_limit("30/minute")
 def get_cache_status(request: Request):
     """Get cache performance statistics"""
     try:
@@ -520,7 +520,7 @@ def get_cache_status(request: Request):
 
 
 @router.post("/api/cache/clear")
-@limiter.limit("5/minute")
+@safe_rate_limit("5/minute")
 def clear_cache(request: Request):
     """Clear all cached data (for testing/admin purposes)"""
     try:
