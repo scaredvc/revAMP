@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from slowapi.errors import RateLimitExceeded
@@ -6,10 +6,13 @@ from slowapi.middleware import SlowAPIMiddleware
 from app.core.shared import limiter
 from app.core.config import settings
 from app.core.logging import logger
-# from app.core.database import engine  # Commented out - no database yet
-# from app.models.base import Base  # Commented out - no database yet
+from app.core.database import engine
+from app.models.base import Base
+from app.models import analytics 
 from app.routers.health import router as health_router
 from app.routers.zones import router as zones_router
+from app.core.database import get_db
+from sqlalchemy.orm import Session
 # from app.routers.auth import router as auth_router  # Commented out - needs database
 # from app.routers.parking_history import router as parking_history_router  # Commented out - needs database
 # from app.routers.favorites import router as favorites_router  # Commented out - needs database
@@ -36,6 +39,22 @@ app.state.limiter = limiter
 app.add_middleware(SlowAPIMiddleware)
 
 
+@app.on_event("startup")
+async def startup_event():
+    # Create all database tables
+    Base.metadata.create_all(bind=engine)
+    print("Database tables created successfully!")
+
+@app.get("/test-db")
+async def test_database(db: Session = Depends(get_db)):
+    try:
+        # Try a simple query
+        from app.models.analytics import SearchEvent
+        count = db.query(SearchEvent).count()
+        return {"status": "success", "message": f"Database connected! Events: {count}"}
+    except Exception as e:
+        return {"status": "error", "message": str(e)}
+
 @app.exception_handler(RateLimitExceeded)
 async def rate_limit_handler(request: Request, exc: RateLimitExceeded):
     return JSONResponse(
@@ -47,10 +66,6 @@ async def rate_limit_handler(request: Request, exc: RateLimitExceeded):
     )
 
 
-
-
-# Create database tables
-# Base.metadata.create_all(bind=engine)  # Commented out - no database yet
 
 app.include_router(health_router)
 app.include_router(zones_router)
