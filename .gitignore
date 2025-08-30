@@ -1,9 +1,217 @@
+# ===== PYTHON BACKEND PATTERNS =====
+# Byte-compiled / optimized / DLL files
+backend/__pycache__/
+backend/**/__pycache__/
+backend/*.py[cod]
+backend/**/*.py[cod]
+backend/*$py.class
+backend/**/*$py.class
+
+# C extensions
+backend/*.so
+backend/**/*.so
+
+# Distribution / packaging
+backend/.Python
+backend/build/
+backend/develop-eggs/
+backend/dist/
+backend/downloads/
+backend/eggs/
+backend/.eggs/
+backend/lib/
+backend/lib64/
+backend/parts/
+backend/sdist/
+backend/var/
+backend/wheels/
+backend/share/python-wheels/
+backend/*.egg-info/
+backend/**/*.egg-info/
+backend/.installed.cfg
+backend/*.egg
+backend/MANIFEST
+
+# PyInstaller
+backend/*.manifest
+backend/*.spec
+
+# Installer logs
+backend/pip-log.txt
+backend/pip-delete-this-directory.txt
+
+# Unit test / coverage reports
+backend/htmlcov/
+backend/.tox/
+backend/.nox/
+backend/.coverage
+backend/.coverage.*
+backend/.cache
+backend/nosetests.xml
+backend/coverage.xml
+backend/*.cover
+backend/**/*.cover
+backend/.hypothesis/
+backend/.pytest_cache/
+backend/cover/
+
+# Translations
+backend/*.mo
+backend/*.pot
+
+# Django/Flask stuff
+backend/*.log
+backend/local_settings.py
+backend/db.sqlite3
+backend/db.sqlite3-journal
+backend/instance/
+backend/.webassets-cache
+
+# Scrapy stuff
+backend/.scrapy
+
+# Sphinx documentation
+backend/docs/_build/
+
+# PyBuilder
+backend/.pybuilder/
+backend/target/
+
+# Jupyter Notebook
+backend/.ipynb_checkpoints
+
+# IPython
+backend/profile_default/
+backend/ipython_config.py
+
+# pyenv
+# backend/.python-version
+
+# pipenv
+# backend/Pipfile.lock
+
+# poetry
+# backend/poetry.lock
+
+# pdm
+backend/.pdm.toml
+
+# PEP 582
+backend/__pypackages__/
+
+# Celery stuff
+backend/celerybeat-schedule
+backend/celerybeat.pid
+
+# SageMath parsed files
+backend/*.sage.py
+
+# Environments
+backend/.venv/
+backend/venv/
+backend/env/
+backend/ENV/
+backend/env.bak/
+backend/venv.bak/
+
+# Spyder project settings
+backend/.spyderproject
+backend/.spyproject
+
+# Rope project settings
+backend/.ropeproject
+
+# mkdocs documentation
+backend/site/
+
+# mypy
+backend/.mypy_cache/
+backend/.dmypy.json
+backend/dmypy.json
+
+# Pyre type checker
+backend/.pyre/
+
+# pytype static type analyzer
+backend/.pytype/
+
+# Cython debug symbols
+backend/cython_debug/
+
+# PyCharm
+# backend/.idea/
+
+# VS Code
+backend/.vscode/
+
+# ===== NODE.JS FRONTEND PATTERNS =====
+# Dependencies
+frontend/node_modules/
+frontend/.pnp
+frontend/.pnp.js
+
+# Testing
+frontend/coverage/
+
+# Next.js
+frontend/.next/
+frontend/out/
+frontend/build/
+
+# Production
+frontend/build/
+
+# Misc
+frontend/.DS_Store
+frontend/*.pem
+
+# Debug
+frontend/npm-debug.log*
+frontend/yarn-debug.log*
+frontend/yarn-error.log*
+
+# Local env files
+frontend/.env
+frontend/.env*.local
+frontend/.env.local
+
+# Vercel
+frontend/.vercel
+
+# TypeScript
+frontend/*.tsbuildinfo
+frontend/next-env.d.ts
+
+# Additional Node.js patterns
+frontend/.npm
+frontend/.eslintcache
+frontend/.stylelintcache
+frontend/.rpt2_cache/
+frontend/.rts2_cache_cjs/
+frontend/.rts2_cache_es/
+frontend/.rts2_cache_umd/
+frontend/.node_repl_history
+frontend/*.tgz
+frontend/.yarn-integrity
+
+# Additional build/cache patterns
+frontend/.cache/
+frontend/.parcel-cache/
+frontend/.turbo/
+frontend/.swc/
+
+# ===== ROOT LEVEL PATTERNS =====
 # IDE and editor files
 .vscode/
 .idea/
 *.swp
 *.swo
 *~
+.project
+.classpath
+.settings/
+*.sublime-project
+*.sublime-workspace
 
 # OS generated files
 .DS_Store
@@ -11,111 +219,65 @@
 ._*
 .Spotlight-V100
 .Trashes
-ehthumbs.db
 Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+*.cab
+*.msi
+*.msix
+*.msm
+*.msp
+*.lnk
 
-# Python
-__pycache__/
-*.py[cod]
-*$py.class
-*.so
-.Python
-build/
-develop-eggs/
-dist/
-downloads/
-eggs/
-.eggs/
-lib/
-lib64/
-parts/
-sdist/
-var/
-wheels/
-*.egg-info/
-.installed.cfg
-*.egg
-MANIFEST
-
-# Node.js
-node_modules/
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-.pnpm-debug.log*
-
-# Next.js
-.next/
-out/
-
-# Environment files
+# Environment variables
 .env
 .env.local
-.env.development.local
-.env.test.local
-.env.production.local
+.env.development
+.env.test
+.env.production
 
 # Logs
-logs
+logs/
 *.log
 
-# Runtime data
-pids
-*.pid
-*.seed
-*.pid.lock
+# Database files
+*.db
+*.sqlite
+*.sqlite3
 
-# Coverage directory used by tools like istanbul
-coverage/
-
-# Dependency directories
-jspm_packages/
-
-# Optional npm cache directory
-.npm
-
-# Optional eslint cache
-.eslintcache
-
-# Microbundle cache
-.rpt2_cache/
-.rts2_cache_cjs/
-.rts2_cache_es/
-.rts2_cache_umd/
-
-# Optional REPL history
-.node_repl_history
-
-# Output of 'npm pack'
-*.tgz
-
-# Yarn Integrity file
-.yarn-integrity
-
-# parcel-bundler cache (https://parceljs.org/)
-.cache
-.parcel-cache
-
-# Next.js build output
-.next
-
-# Nuxt.js build / generate output
-.nuxt
-dist
-
-# Gatsby files
-.cache/
-public
-
-# Storybook build outputs
-.out
-.storybook-out
-
-# Temporary folders
-tmp/
+# Temporary files
 temp/
+tmp/
 
 # Project specific
-.qodo
-
+.qodo/
 doc/
+
+# ===== GLOBAL PATTERNS =====
+# These will match files in any directory
+**/__pycache__/
+**/*.pyc
+**/*.pyo
+**/*.pyd
+**/*.so
+**/*.egg
+**/*.egg-info/
+**/.coverage
+**/.pytest_cache/
+**/.tox/
+**/htmlcov/
+**/.venv/
+**/venv/
+**/env/
+**/.env
+**/.env.local
+**/*.log
+**/*.db
+**/*.sqlite
+**/*.sqlite3
+**/node_modules/
+**/.next/
+**/out/
+**/build/
+**/.vercel
