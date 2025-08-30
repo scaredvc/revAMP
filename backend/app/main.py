@@ -8,12 +8,11 @@ from app.core.config import settings
 from app.core.logging import logger
 from app.core.database import engine
 from app.models.base import Base
-from app.models import analytics 
 from app.routers.health import router as health_router
 from app.routers.zones import router as zones_router
 from app.core.database import get_db
 from sqlalchemy.orm import Session
-# from app.routers.auth import router as auth_router  # Commented out - needs database
+from app.routers.auth import router as auth_router
 # from app.routers.parking_history import router as parking_history_router  # Commented out - needs database
 # from app.routers.favorites import router as favorites_router  # Commented out - needs database
 # from app.routers.payments import router as payments_router  # Commented out - no payments yet
@@ -48,10 +47,10 @@ async def startup_event():
 @app.get("/test-db")
 async def test_database(db: Session = Depends(get_db)):
     try:
-        # Try a simple query
-        from app.models.analytics import SearchEvent
-        count = db.query(SearchEvent).count()
-        return {"status": "success", "message": f"Database connected! Events: {count}"}
+        # Try a simple query to test database connection
+        from app.models.user import User
+        user_count = db.query(User).count()
+        return {"status": "success", "message": f"Database connected! Users: {user_count}"}
     except Exception as e:
         return {"status": "error", "message": str(e)}
 
@@ -69,7 +68,7 @@ async def rate_limit_handler(request: Request, exc: RateLimitExceeded):
 
 app.include_router(health_router)
 app.include_router(zones_router)
-# app.include_router(auth_router, prefix="/auth", tags=["Authentication"])  # Commented out - needs database
+app.include_router(auth_router, prefix="/auth", tags=["Authentication"])
 # app.include_router(parking_history_router, prefix="/parking", tags=["Parking History"])  # Commented out - needs database
 # app.include_router(favorites_router, prefix="/favorites", tags=["Favorites"])  # Commented out - needs database
 # app.include_router(payments_router, prefix="/payments", tags=["Payments"])  # Commented out - no payments yet

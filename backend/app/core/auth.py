@@ -11,6 +11,15 @@ from .database import get_db
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/token")
 
+def authenticate_user(email: str, password: str, db: Session):
+    """Authenticate user with email and password"""
+    user = db.query(User).filter(User.email == email).first()
+    if not user:
+        return False
+    if not user.verify_password(password):
+        return False
+    return user
+
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
     to_encode = data.copy()
     if expires_delta:
