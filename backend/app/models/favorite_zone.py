@@ -1,5 +1,5 @@
 # models/favorite_zone.py
-from sqlalchemy import Column, Integer, String, Text, ForeignKey
+from sqlalchemy import Column, Integer, String, Text, ForeignKey, DateTime
 from sqlalchemy.orm import relationship
 from .base import Base, TimestampMixin
 
