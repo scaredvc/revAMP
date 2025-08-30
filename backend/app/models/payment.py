@@ -25,23 +25,23 @@ class Payment(Base, TimestampMixin):
 
     # Additional info
     description = Column(Text, nullable=True)
-    metadata = Column(Text, nullable=True)  # JSON string for additional data
+    payment_metadata = Column(Text, nullable=True)  # JSON string for additional data
 
     # Relationships
     user = relationship("User", back_populates="payments")
     parking_session = relationship("ParkingHistory", back_populates="payment")
 
     @property
-    def payment_metadata(self):
+    def metadata_dict(self):
         """Get payment metadata as dict"""
         import json
         try:
-            return json.loads(self.metadata or "{}")
+            return json.loads(self.payment_metadata or "{}")
         except:
             return {}
 
-    @payment_metadata.setter
-    def payment_metadata(self, value):
+    @metadata_dict.setter
+    def metadata_dict(self, value):
         """Set payment metadata as JSON string"""
         import json
-        self.metadata = json.dumps(value)
+        self.payment_metadata = json.dumps(value)
