@@ -14,21 +14,32 @@ from app.schemas.payments import (
     PaymentCreate, PaymentResponse, PaymentIntentResponse,
     ParkingRate, PaymentStats
 )
-from app.core.shared import limiter
+from app.core.shared import safe_rate_limit
 
 router = APIRouter()
 
-# Initialize Stripe
-stripe.api_key = settings.STRIPE_SECRET_KEY
+# Initialize Stripe (only if keys are provided)
+if settings.STRIPE_SECRET_KEY:
+    stripe.api_key = settings.STRIPE_SECRET_KEY
+else:
+    # Disable Stripe functionality if no keys provided
+    stripe.api_key = None
 
 @router.post("/create-payment-intent", response_model=PaymentIntentResponse)
-@limiter.limit("10/minute")
+@safe_rate_limit("10/minute")
 async def create_payment_intent(
     payment_data: PaymentCreate,
     current_user: User = Depends(get_current_active_user),
     db: Session = Depends(get_db)
 ):
     """Create a Stripe payment intent for parking payment"""
+    # Check if Stripe is configured
+    if not settings.STRIPE_SECRET_KEY:
+        raise HTTPException(
+            status_code=503, 
+            detail="Payment processing is not configured. Please contact administrator."
+        )
+    
     try:
         # Calculate amount in cents
         amount_cents = int(payment_data.amount * 100)
@@ -70,6 +81,13 @@ async def create_payment_intent(
 @router.post("/webhook")
 async def stripe_webhook(request: Request, db: Session = Depends(get_db)):
     """Handle Stripe webhooks"""
+    # Check if Stripe is configured
+    if not settings.STRIPE_SECRET_KEY or not settings.STRIPE_WEBHOOK_SECRET:
+        raise HTTPException(
+            status_code=503, 
+            detail="Payment webhooks are not configured. Please contact administrator."
+        )
+    
     payload = await request.body()
     sig_header = request.headers.get('stripe-signature')
 
@@ -123,7 +141,7 @@ async def handle_payment_failure(payment_intent, db: Session):
         db.commit()
 
 @router.get("/rates", response_model=List[ParkingRate])
-@limiter.limit("60/minute")
+@safe_rate_limit("60/minute")
 async def get_parking_rates():
     """Get current parking rates"""
     # This would typically come from a database or configuration
@@ -150,7 +168,7 @@ async def get_parking_rates():
     return rates
 
 @router.get("/history", response_model=List[PaymentResponse])
-@limiter.limit("60/minute")
+@safe_rate_limit("60/minute")
 async def get_payment_history(
     skip: int = 0,
     limit: int = 50,
@@ -164,7 +182,7 @@ async def get_payment_history(
     return payments
 
 @router.get("/stats", response_model=PaymentStats)
-@limiter.limit("30/minute")
+@safe_rate_limit("30/minute")
 async def get_payment_stats(
     current_user: User = Depends(get_current_active_user),
     db: Session = Depends(get_db)

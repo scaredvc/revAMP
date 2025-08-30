@@ -13,9 +13,9 @@ from app.routers.zones import router as zones_router
 from app.core.database import get_db
 from sqlalchemy.orm import Session
 from app.routers.auth import router as auth_router
-# from app.routers.parking_history import router as parking_history_router  # Commented out - needs database
-# from app.routers.favorites import router as favorites_router  # Commented out - needs database
-# from app.routers.payments import router as payments_router  # Commented out - no payments yet
+from app.routers.parking_history import router as parking_history_router
+from app.routers.favorites import router as favorites_router
+from app.routers.payments import router as payments_router
 
 
 # Initialize logging
@@ -69,6 +69,6 @@ async def rate_limit_handler(request: Request, exc: RateLimitExceeded):
 app.include_router(health_router)
 app.include_router(zones_router)
 app.include_router(auth_router, prefix="/auth", tags=["Authentication"])
-# app.include_router(parking_history_router, prefix="/parking", tags=["Parking History"])  # Commented out - needs database
-# app.include_router(favorites_router, prefix="/favorites", tags=["Favorites"])  # Commented out - needs database
-# app.include_router(payments_router, prefix="/payments", tags=["Payments"])  # Commented out - no payments yet
+app.include_router(parking_history_router, prefix="/parking", tags=["Parking History"])
+app.include_router(favorites_router, prefix="/favorites", tags=["Favorites"])
+app.include_router(payments_router, prefix="/payments", tags=["Payments"])
