@@ -13,7 +13,7 @@ class UserCreate(UserBase):
     password: str
 
 class UserLogin(BaseModel):
-    username: str  # Can be email or username
+    email: EmailStr
     password: str
 
 class UserUpdate(BaseModel):
