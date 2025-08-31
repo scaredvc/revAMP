@@ -66,8 +66,12 @@ router = APIRouter()
 def get_zones_data(left_long: float, right_long: float, top_lat: float, bottom_lat: float) -> ExternalAPIResponse:
     """Helper function to safely fetch and validate zones data with error handling"""
     try:
+        logger.info(f"Attempting to fetch zones data for bounds: {left_long}, {right_long}, {top_lat}, {bottom_lat}")
         zones_text = search_zones(left_long, right_long, top_lat, bottom_lat)
+        logger.info(f"Received response from external API: {zones_text[:200] if zones_text else 'None'}...")
+        
         if not zones_text:
+            logger.error("External API returned empty response")
             raise HTTPException(
                 status_code=503,
                 detail=ErrorResponse(

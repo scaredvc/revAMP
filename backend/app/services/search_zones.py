@@ -18,6 +18,7 @@ def search_zones(left_long: float, right_long: float, top_lat: float, bottom_lat
 
     try:
         # Make API call if not cached
+        logger.info(f"Making request to external API: {BASE_URL}")
         scraper = cloudscraper.create_scraper()
         payload = {
             "cmd": "get_zones_in_frame",
@@ -26,18 +27,25 @@ def search_zones(left_long: float, right_long: float, top_lat: float, bottom_lat
             "top_lat": str(top_lat),
             "bottom_lat": str(bottom_lat),
         }
+        logger.info(f"Request payload: {payload}")
+        
         response = scraper.post(BASE_URL, data=payload, timeout=settings.EXTERNAL_API_TIMEOUT)
+        logger.info(f"Response status: {response.status_code}")
         result = response.text
+        logger.info(f"Response text length: {len(result) if result else 0}")
 
         if not result:
+            logger.error("Empty response from external API")
             raise ValueError("Empty response from external API")
 
         # Cache the result using configured TTL
         cache.set(cache_key, result, ttl_seconds=settings.CACHE_TTL_SECONDS)
+        logger.info("Successfully cached the result")
 
         return result
 
     except Exception as e:
         logger.error(f"Error calling external API: {str(e)}")
+        logger.error(f"Error type: {type(e).__name__}")
         raise
 
