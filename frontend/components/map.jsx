@@ -272,7 +272,7 @@ const Map = forwardRef(({ parkingSpots, onBoundsChanged, selectedSpot, isUpdatin
 
           // Track search analytics when user clicks on map marker
           try {
-            await fetch(`https://amp-parking.onrender.com/api/analytics/search/${encodeURIComponent(spot.name)}`, {
+            await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/analytics/search/${encodeURIComponent(spot.name)}`, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' }
             }).catch(error => console.warn('Map marker analytics tracking failed:', error));
