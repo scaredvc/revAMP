@@ -74,25 +74,26 @@ export default function Home() {
     }
 
     return (
-        <main className="container mx-auto p-4 bg-black min-h-screen">
+        <main className="container mx-auto p-4 min-h-screen" style={{background: 'var(--ucd-darker)'}}>
             {/* Header with Authentication */}
             <header className="mb-6">
                 <div className="flex justify-between items-center mb-4">
                     <div>
-                        <h1 className="text-4xl font-bold text-white mb-2">revAMP</h1>
-                        <p className="text-gray-300">Find and pay for parking spots at UC Davis</p>
+                        <h1 className="text-4xl font-bold mb-2" style={{color: 'var(--ucd-light)'}}>revAMP</h1>
+                        <p style={{color: 'var(--ucd-muted)'}}>Find and pay for parking spots at UC Davis</p>
                     </div>
                     
                     {/* Authentication Buttons */}
                     <div className="flex items-center space-x-4">
                         {isAuthenticated ? (
                             <div className="flex items-center space-x-4">
-                                <span className="text-gray-300">
+                                <span style={{color: 'var(--ucd-muted)'}}>
                                     Welcome, {user?.full_name || user?.email}!
                                 </span>
                                 <button
                                     onClick={() => setShowLogin(false)}
-                                    className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition duration-200"
+                                    className="px-4 py-2 rounded-lg transition duration-200"
+                                    style={{background: 'var(--ucd-primary)', color: 'var(--ucd-light)'}}
                                 >
                                     Dashboard
                                 </button>
@@ -100,7 +101,8 @@ export default function Home() {
                         ) : (
                             <button
                                 onClick={() => setShowLogin(true)}
-                                className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition duration-200"
+                                className="px-4 py-2 rounded-lg transition duration-200"
+                                style={{background: 'var(--ucd-primary)', color: 'var(--ucd-light)'}}
                             >
                                 Sign In
                             </button>
@@ -113,10 +115,10 @@ export default function Home() {
             {showLogin ? (
                 // Show Login Form
                 <div className="max-w-4xl mx-auto">
-                    <div className="text-center mb-8">
-                        <h2 className="text-2xl font-bold text-white mb-2">Welcome to revAMP</h2>
-                        <p className="text-gray-400">Sign in to access your parking dashboard</p>
-                    </div>
+                                         <div className="text-center mb-8">
+                         <h2 className="text-2xl font-bold mb-2" style={{color: 'var(--ucd-light)'}}>Welcome to revAMP</h2>
+                         <p style={{color: 'var(--ucd-muted)'}}>Sign in to access your parking dashboard</p>
+                     </div>
                     <LoginForm />
                 </div>
             ) : isAuthenticated ? (
@@ -130,13 +132,13 @@ export default function Home() {
                     {/* Map and Parking Data */}
                     <div className="lg:col-span-3">
                         {error ? (
-                            <div className="text-red-400 mb-4 p-2 bg-red-900/20 rounded">
-                                <p>Error: {error}</p>
-                            </div>
+                                                         <div className="mb-4 p-2 rounded" style={{color: 'var(--ucd-error)', background: 'rgba(220, 38, 38, 0.1)'}}>
+                                 <p>Error: {error}</p>
+                             </div>
                         ) : isLoading ? (
-                            <div className="text-white">
-                                <p>Loading parking data...</p>
-                            </div>
+                                                         <div style={{color: 'var(--ucd-light)'}}>
+                                 <p>Loading parking data...</p>
+                             </div>
                         ) : (
                             <div>
                                 <MapApp
@@ -144,11 +146,11 @@ export default function Home() {
                                     onBoundsChanged={handleBoundsChanged}
                                     isUpdating={false}
                                 />
-                                {parkingSpots.length === 0 && (
-                                    <div className="text-gray-300 text-center mt-4">
-                                        <p>No parking spots found</p>
-                                    </div>
-                                )}
+                                                                 {parkingSpots.length === 0 && (
+                                     <div className="text-center mt-4" style={{color: 'var(--ucd-muted)'}}>
+                                         <p>No parking spots found</p>
+                                     </div>
+                                 )}
                             </div>
                         )}
                     </div>
@@ -156,19 +158,20 @@ export default function Home() {
             ) : (
                 // Show Welcome Message for Non-Authenticated Users
                 <div className="max-w-4xl mx-auto text-center">
-                    <div className="bg-gray-900 rounded-lg shadow-xl p-12 border border-gray-700">
-                        <h2 className="text-3xl font-bold text-white mb-4">Welcome to revAMP</h2>
-                        <p className="text-gray-300 text-lg mb-8">
-                            The better parking application for UC Davis students. 
-                            Sign in to access parking maps, track your sessions, and manage your account.
-                        </p>
-                        <button
-                            onClick={() => setShowLogin(true)}
-                            className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-lg text-lg font-semibold transition duration-200"
-                        >
-                            Get Started
-                        </button>
-                    </div>
+                                         <div className="rounded-lg shadow-xl p-12 border" style={{background: 'var(--ucd-dark)', borderColor: 'var(--ucd-border)'}}>
+                         <h2 className="text-3xl font-bold mb-4" style={{color: 'var(--ucd-light)'}}>Welcome to revAMP</h2>
+                         <p className="text-lg mb-8" style={{color: 'var(--ucd-muted)'}}>
+                             The better parking application for UC Davis students. 
+                             Sign in to access parking maps, track your sessions, and manage your account.
+                         </p>
+                         <button
+                             onClick={() => setShowLogin(true)}
+                             className="px-8 py-3 rounded-lg text-lg font-semibold transition duration-200"
+                             style={{background: 'var(--ucd-primary)', color: 'var(--ucd-light)'}}
+                         >
+                             Get Started
+                         </button>
+                     </div>
                 </div>
             )}
         </main>

@@ -2,9 +2,26 @@
 @tailwind components;
 @tailwind utilities;
 
+/* UC Davis Color Palette */
+:root {
+  --ucd-primary: #002855;      /* UC Davis Blue */
+  --ucd-secondary: #DAAA00;    /* UC Davis Gold */
+  --ucd-accent: #C8102E;       /* UC Davis Red */
+  --ucd-dark: #1A1A1A;         /* Dark background */
+  --ucd-darker: #0F0F0F;       /* Darker cards */
+  --ucd-light: #FFFFFF;        /* White text */
+  --ucd-muted: #6B7280;        /* Gray text */
+  --ucd-border: #374151;       /* Border gray */
+  --ucd-hover: #003366;        /* Hover blue */
+  --ucd-success: #059669;      /* Success green */
+  --ucd-warning: #D97706;      /* Warning orange */
+  --ucd-error: #DC2626;        /* Error red */
+}
+
 /* Layout */
 .main-container {
-  @apply flex h-screen bg-black;
+  @apply flex h-screen;
+  background: var(--ucd-darker);
 }
 
 /* Animations */
@@ -40,19 +57,25 @@
 
 /* Sidebar */
 .sidebar {
-  @apply w-1/3 p-4 bg-black shadow-lg border-r border-gray-800 overflow-y-auto;
+  @apply w-1/3 p-4 shadow-lg border-r overflow-y-auto;
+  background: var(--ucd-dark);
+  border-color: var(--ucd-border);
 }
 
 .sidebar-header {
-  @apply flex justify-between items-center mb-4 pb-4 border-b border-gray-800;
+  @apply flex justify-between items-center mb-4 pb-4 border-b;
+  border-color: var(--ucd-border);
 }
 
 .sidebar-title {
-  @apply text-xl font-bold text-white;
+  @apply text-xl font-bold;
+  color: var(--ucd-light);
 }
 
 .sidebar-stats .stat-badge {
-  @apply inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-800 text-gray-200;
+  @apply inline-flex items-center px-2 py-1 rounded-full text-xs font-medium;
+  background: var(--ucd-primary);
+  color: var(--ucd-light);
 }
 
 .search-container {
@@ -60,11 +83,25 @@
 }
 
 .search-input {
-  @apply w-full px-4 py-2 bg-gray-900 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors;
+  @apply w-full px-4 py-2 rounded-lg transition-colors;
+  background: var(--ucd-darker);
+  border: 1px solid var(--ucd-border);
+  color: var(--ucd-light);
+}
+
+.search-input::placeholder {
+  color: var(--ucd-muted);
+}
+
+.search-input:focus {
+  outline: none;
+  border-color: var(--ucd-primary);
+  box-shadow: 0 0 0 2px rgba(0, 40, 85, 0.2);
 }
 
 .search-help {
-  @apply text-xs text-gray-400 mt-1 text-center;
+  @apply text-xs mt-1 text-center;
+  color: var(--ucd-muted);
 }
 
 
@@ -74,11 +111,20 @@
 }
 
 .spot-card {
-  @apply bg-gray-900 border border-gray-800 rounded-xl p-4 cursor-pointer transition-all duration-200 hover:shadow-md hover:border-gray-600;
+  @apply rounded-xl p-4 cursor-pointer transition-all duration-200 hover:shadow-md;
+  background: var(--ucd-darker);
+  border: 1px solid var(--ucd-border);
+}
+
+.spot-card:hover {
+  border-color: var(--ucd-primary);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 40, 85, 0.15);
 }
 
 .spot-card.selected {
-  @apply ring-2 ring-blue-500 shadow-lg;
+  border-color: var(--ucd-primary);
+  box-shadow: 0 0 0 2px rgba(0, 40, 85, 0.3);
 }
 
 .spot-header {
@@ -86,7 +132,9 @@
 }
 
 .spot-icon {
-  @apply flex-shrink-0 w-8 h-8 bg-gray-800 rounded-lg flex items-center justify-center text-blue-400;
+  @apply flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center;
+  background: var(--ucd-primary);
+  color: var(--ucd-light);
 }
 
 .spot-title-section {
@@ -94,7 +142,8 @@
 }
 
 .spot-name {
-  @apply font-semibold text-white mb-1 truncate;
+  @apply font-semibold mb-1 truncate;
+  color: var(--ucd-light);
 }
 
 .spot-badges {
@@ -106,15 +155,18 @@
 }
 
 .availability-badge.available {
-  @apply bg-green-100 text-green-800;
+  background: var(--ucd-success);
+  color: var(--ucd-light);
 }
 
 .availability-badge.occupied {
-  @apply bg-red-100 text-red-800;
+  background: var(--ucd-error);
+  color: var(--ucd-light);
 }
 
 .availability-badge.unknown {
-  @apply bg-gray-100 text-gray-800;
+  background: var(--ucd-muted);
+  color: var(--ucd-light);
 }
 
 .spot-content {
@@ -122,7 +174,8 @@
 }
 
 .spot-description {
-  @apply text-sm text-gray-300 mb-2 line-clamp-2;
+  @apply text-sm mb-2 line-clamp-2;
+  color: var(--ucd-muted);
 }
 
 .spot-details {
@@ -130,7 +183,9 @@
 }
 
 .detail-item {
-  @apply inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-gray-800 text-gray-300;
+  @apply inline-flex items-center px-2 py-1 rounded-md text-xs font-medium;
+  background: var(--ucd-primary);
+  color: var(--ucd-light);
 }
 
 .spot-footer {
@@ -142,11 +197,21 @@
 }
 
 .action-button.primary {
-  @apply bg-blue-600 text-white hover:bg-blue-700;
+  background: var(--ucd-primary);
+  color: var(--ucd-light);
+}
+
+.action-button.primary:hover {
+  background: var(--ucd-hover);
 }
 
 .action-button.secondary {
-  @apply bg-blue-500 text-white hover:bg-blue-600;
+  background: var(--ucd-secondary);
+  color: var(--ucd-dark);
+}
+
+.action-button.secondary:hover {
+  background: #C19A00;
 }
 
 /* Map Section */
@@ -155,14 +220,16 @@
 }
 
 .map-wrapper {
-  @apply rounded-xl overflow-hidden shadow-2xl border border-gray-700;
+  @apply rounded-xl overflow-hidden shadow-2xl border;
   height: 700px; /* Fixed height instead of full height */
+  border-color: var(--ucd-border);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
 }
 
 .map-container {
   @apply w-full h-full rounded-xl;
   min-height: 700px; /* Reduced to fit within the 500px wrapper */
-  background: #1a1a1a; /* Dark fallback background */
+  background: var(--ucd-darker); /* Dark fallback background */
 }
 
 /* Info Window Styling */
@@ -237,22 +304,22 @@
 }
 
 .sidebar::-webkit-scrollbar-track {
-  background: #1a1a1a;
+  background: var(--ucd-darker);
 }
 
 .sidebar::-webkit-scrollbar-thumb {
-  background: #374151;
+  background: var(--ucd-border);
   border-radius: 4px;
 }
 
 .sidebar::-webkit-scrollbar-thumb:hover {
-  background: #4b5563;
+  background: var(--ucd-muted);
 }
 
 /* Firefox scrollbar */
 .sidebar {
   scrollbar-width: thin;
-  scrollbar-color: #374151 #1a1a1a;
+  scrollbar-color: var(--ucd-border) var(--ucd-darker);
 }
 
 /* Responsive Design */
