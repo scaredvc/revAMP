@@ -1,6 +1,7 @@
 'use client'
 import { useState } from 'react'
 import { useAuth } from '../app/contexts/AuthContext'
+import { useRouter } from 'next/navigation'
 
 export default function LoginForm() {
     const [isLogin, setIsLogin] = useState(true)
@@ -10,6 +11,8 @@ export default function LoginForm() {
     const [isSubmitting, setIsSubmitting] = useState(false)
     const [error, setError] = useState('')
     const [success, setSuccess] = useState('')
+
+    const router = useRouter()
 
     const { login, register } = useAuth()
 
@@ -30,6 +33,7 @@ export default function LoginForm() {
 
             if (result.success) {
                 setSuccess(isLogin ? 'Login successful!' : 'Registration successful!')
+                router.push('/dashboard')
             } else {
                 // Ensure error is always a string
                 const errorMessage = typeof result.error === 'string' ? result.error : 'An error occurred'
@@ -168,7 +172,7 @@ export default function LoginForm() {
 
             {/* Demo Account Info */}
             <div className="mt-6 text-center">
-                <p className="text-gray-400 text-sm mb-2">Demo Account (if you have one):</p>
+                <p className="text-gray-400 text-sm mb-2">Demo Account (if you want to test the app):</p>
                 <p className="text-gray-500 text-xs font-mono">
                     Email: demo@example.com<br/>
                     Password: demo123
