@@ -46,11 +46,19 @@ def get_cached_zones_data(left_long: float, right_long: float, top_lat: float, b
 
     # Cache miss or expired - fetch fresh data
     logger.info(f"Cache miss for bounds: {cache_key} - fetching fresh data")
-    fresh_data = get_zones_data(left_long, right_long, top_lat, bottom_lat)
+    stale_data = zone_cache.get(cache_key)
+    try:
+        fresh_data = get_zones_data(left_long, right_long, top_lat, bottom_lat)
 
-    # Store in cache
-    zone_cache[cache_key] = fresh_data
-    cache_timestamps[cache_key] = datetime.now()
+        # Store in cache
+        zone_cache[cache_key] = fresh_data
+        cache_timestamps[cache_key] = datetime.now()
+    except Exception as e:
+        # If we have stale data, use it as a fallback instead of failing hard
+        if stale_data:
+            logger.warning(f"Using stale cache for bounds {cache_key} due to upstream error: {e}")
+            return stale_data
+        raise
 
     # Clean up old cache entries (simple cleanup - keep only last 10)
     if len(zone_cache) > 10:
@@ -95,6 +103,9 @@ def get_zones_data(left_long: float, right_long: float, top_lat: float, bottom_l
                 ).dict()
             )
 
+    except HTTPException:
+        # Re-raise HTTPExceptions from search_zones (already properly formatted)
+        raise
     except json.JSONDecodeError as e:
         logger.error(f"JSON parse error: {str(e)}")
         raise HTTPException(
