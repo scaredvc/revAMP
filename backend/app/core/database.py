@@ -13,11 +13,25 @@ if DATABASE_URL and DATABASE_URL.startswith("postgres://"):
 
 # Create engine
 if DATABASE_URL:
-    # Production database
+    # Production database (Render Postgres)
+    # Render Postgres requires explicit SSL parameters
+    connect_args = {}
+    if "render.com" in DATABASE_URL:
+        # Ensure sslmode is in URL if not already present
+        if "sslmode" not in DATABASE_URL:
+            separator = "&" if "?" in DATABASE_URL else "?"
+            DATABASE_URL = f"{DATABASE_URL}{separator}sslmode=require"
+        # Also pass as connect_args for psycopg2
+        connect_args = {
+            "sslmode": "require",
+            "connect_timeout": 10,
+        }
+    
     engine = create_engine(
         DATABASE_URL,
         pool_pre_ping=True,  # Verify connections before use
-        pool_recycle=3600,   # Recycle connections after 1 hour
+        pool_recycle=300,    # Recycle connections after 5 minutes (prevents stale connections)
+        connect_args=connect_args,
     )
 else:
     # Fallback to SQLite for local development

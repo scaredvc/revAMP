@@ -12,6 +12,8 @@ from app.routers.health import router as health_router
 from app.routers.zones import router as zones_router
 from app.core.database import get_db
 from sqlalchemy.orm import Session
+from sqlalchemy.exc import OperationalError
+from sqlalchemy import text
 from app.routers.auth import router as auth_router
 from app.routers.parking_history import router as parking_history_router
 from app.routers.favorites import router as favorites_router
@@ -41,18 +43,24 @@ app.add_middleware(SlowAPIMiddleware)
 @app.on_event("startup")
 async def startup_event():
     # Create all database tables
-    Base.metadata.create_all(bind=engine)
-    print("Database tables created successfully!")
-
-@app.get("/test-db")
-async def test_database(db: Session = Depends(get_db)):
+    # Use try/except so app can start even if DB is temporarily unavailable (e.g., sleeping Postgres)
     try:
-        # Try a simple query to test database connection
-        from app.models.user import User
-        user_count = db.query(User).count()
-        return {"status": "success", "message": f"Database connected! Users: {user_count}"}
+        Base.metadata.create_all(bind=engine)
+        logger.info("Database tables ensured.")
+    except OperationalError as e:
+        logger.warning("DB not reachable on startup: %s", e)
+        logger.warning("Continuing without creating tables on startup.")
+
+@app.get("/health/db")
+def health_db():
+    """Health check endpoint for database connectivity"""
+    try:
+        with engine.connect() as conn:
+            conn.execute(text("SELECT 1"))
+        return {"db": "ok"}
     except Exception as e:
-        return {"status": "error", "message": str(e)}
+        logger.error(f"Database health check failed: {e}")
+        return {"db": "error", "message": str(e)}, 503
 
 @app.exception_handler(RateLimitExceeded)
 async def rate_limit_handler(request: Request, exc: RateLimitExceeded):
