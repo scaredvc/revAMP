@@ -42,7 +42,8 @@ export function AuthProvider({ children }) {
 
     const fetchUserInfo = async (authToken) => {
         try {
-            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/auth/me`, {
+            const apiUrl = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/auth/me`
+            const response = await fetch(apiUrl, {
                 headers: {
                     'Authorization': `Bearer ${authToken}`,
                     'Content-Type': 'application/json'
@@ -52,9 +53,19 @@ export function AuthProvider({ children }) {
             if (response.ok) {
                 return await response.json()
             }
+            
+            // If unauthorized, token might be invalid - return null to clear it
+            if (response.status === 401 || response.status === 403) {
+                return null
+            }
+            
             return null
         } catch (error) {
-            console.error('Error fetching user info:', error)
+            // Network error - backend might not be running
+            console.error('Error fetching user info:', error.message)
+            if (error.message === 'Failed to fetch' || error.name === 'TypeError') {
+                console.warn('Cannot connect to backend API. Make sure the backend server is running on port 8000.')
+            }
             return null
         }
     }
