@@ -16,6 +16,19 @@ class Settings:
     EXTERNAL_API_URL: str = os.getenv("EXTERNAL_API_URL", "https://aimsmobilepay.com/api/zone/index.php")
     EXTERNAL_API_TIMEOUT: int = int(os.getenv("EXTERNAL_API_TIMEOUT", "30"))
 
+    # Upstream Proxy Configuration
+    UPSTREAM_PROXY_URL: str = os.getenv("UPSTREAM_PROXY_URL", "")
+    UPSTREAM_PROXY_TOKEN: str = os.getenv("UPSTREAM_PROXY_TOKEN", "")
+
+    # Redis / Rate Limiting Configuration
+    REDIS_URL: str = os.getenv("REDIS_URL", "")
+    RATE_LIMIT_MINUTE: str = os.getenv("RATE_LIMIT_MINUTE", "60/minute")
+
+    # Proxy / Upstream Protection
+    PROXY_CIRCUIT_THRESHOLD: int = int(os.getenv("PROXY_CIRCUIT_THRESHOLD", "10"))
+    PROXY_CIRCUIT_WINDOW_SECONDS: int = int(os.getenv("PROXY_CIRCUIT_WINDOW_SECONDS", "30"))
+    PROXY_CIRCUIT_COOLDOWN_SECONDS: int = int(os.getenv("PROXY_CIRCUIT_COOLDOWN_SECONDS", "30"))
+
     # Logging Configuration
     LOG_LEVEL: str = os.getenv("LOG_LEVEL", "INFO")
 

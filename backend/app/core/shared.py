@@ -5,25 +5,36 @@ from functools import lru_cache
 from slowapi import Limiter
 from slowapi.util import get_remote_address
 from app.core.config import settings
+from app.core.logging import logger
 
+
+def _build_limits():
+    limits = [settings.RATE_LIMIT_MINUTE, settings.RATE_LIMIT_HOUR, settings.RATE_LIMIT_DAY]
+    return [limit for limit in limits if limit]
+
+
+storage_uri = settings.REDIS_URL or "memory://"
+if not settings.REDIS_URL:
+    logger.warning("REDIS_URL not set; using in-process rate limit storage. Set REDIS_URL for shared limits.")
 
 # Global rate limiter instance used across routers
-limiter = Limiter(key_func=get_remote_address, default_limits=[settings.RATE_LIMIT_DAY, settings.RATE_LIMIT_HOUR])
+limiter = Limiter(
+    key_func=get_remote_address,
+    default_limits=_build_limits(),
+    storage_uri=storage_uri,
+)
 
 
-# Safe rate limiter wrapper that handles initialization issues
 def safe_rate_limit(limit_string: str):
-    """Safe rate limiter that won't crash if limiter isn't ready"""
+    """Decorator wrapper that applies a rate limit; falls back gracefully if limiter fails to initialize."""
     try:
-        # For now, return a no-op decorator to avoid slowapi issues
-        # We can implement proper rate limiting later
+        return limiter.limit(limit_string)
+    except Exception as exc:
+        logger.error("Rate limiter unavailable, using no-op: %s", exc)
+
         def no_op_decorator(func):
             return func
-        return no_op_decorator
-    except Exception:
-        # If anything fails, return a no-op decorator
-        def no_op_decorator(func):
-            return func
+
         return no_op_decorator
 
 

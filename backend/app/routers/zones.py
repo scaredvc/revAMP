@@ -1,129 +1,73 @@
-import json
 import uuid
 from datetime import datetime, timedelta
-from typing import Dict, List
+from typing import Any, Dict
 from collections import defaultdict
 from fastapi import APIRouter, Request, HTTPException, Depends
-from fastapi.responses import JSONResponse
-from fastapi.security import HTTPBearer
+from sqlalchemy.orm import Session
 from app.schemas.zones import (
     Bounds,
     ParkingDataResponse,
     ParkingSpotInfo,
     ZoneCoordinatesResponse,
     ZonesListResponse,
-    RawZonesResponse,
     BoundsInfoResponse,
-    ErrorResponse,
     SearchEvent,
     AnalyticsResponse,
     ZoneAnalytics,
-    UserSession,
-    ExternalAPIResponse
 )
-from app.services.search_zones import search_zones
 from app.services.filter_by_zone import filter_by_zone
 from app.services.get_description import get_description, clean_description
+from app.services.zones_service import ZoneDataResult, fetch_zones_with_snapshot
+from app.services.zone_snapshots import make_bounds_key
 from app.core.shared import safe_rate_limit, DEFAULT_BOUNDS, CITY_BOUNDS, get_bounds_info
 from app.core.logging import logger
+from app.core.database import get_db
 
-# Database simulation for caching (would be real database in production)
-zone_cache = {}
-cache_timestamps = {}
+# In-memory cache to reduce repeated DB lookups between requests
+zone_cache: Dict[str, ZoneDataResult] = {}
+cache_timestamps: Dict[str, datetime] = {}
 CACHE_DURATION_MINUTES = 30  # Cache for 30 minutes
-
-def get_cached_zones_data(left_long: float, right_long: float, top_lat: float, bottom_lat: float) -> ExternalAPIResponse:
-    """Get zones data with caching to reduce external API calls"""
-    # Create cache key based on bounds
-    cache_key = f"{left_long:.4f}_{right_long:.4f}_{top_lat:.4f}_{bottom_lat:.4f}"
-
-    # Check if we have cached data and it's still fresh
-    if cache_key in zone_cache:
-        cache_time = cache_timestamps.get(cache_key)
-        if cache_time and (datetime.now() - cache_time).seconds < (CACHE_DURATION_MINUTES * 60):
-            logger.info(f"Cache hit for bounds: {cache_key}")
-            return zone_cache[cache_key]
-
-    # Cache miss or expired - fetch fresh data
-    logger.info(f"Cache miss for bounds: {cache_key} - fetching fresh data")
-    stale_data = zone_cache.get(cache_key)
-    try:
-        fresh_data = get_zones_data(left_long, right_long, top_lat, bottom_lat)
-
-        # Store in cache
-        zone_cache[cache_key] = fresh_data
-        cache_timestamps[cache_key] = datetime.now()
-    except Exception as e:
-        # If we have stale data, use it as a fallback instead of failing hard
-        if stale_data:
-            logger.warning(f"Using stale cache for bounds {cache_key} due to upstream error: {e}")
-            return stale_data
-        raise
-
-    # Clean up old cache entries (simple cleanup - keep only last 10)
-    if len(zone_cache) > 10:
-        oldest_key = min(cache_timestamps.keys(), key=lambda k: cache_timestamps[k])
-        del zone_cache[oldest_key]
-        del cache_timestamps[oldest_key]
-
-    return fresh_data
 
 router = APIRouter()
 
 
-def get_zones_data(left_long: float, right_long: float, top_lat: float, bottom_lat: float) -> ExternalAPIResponse:
-    """Helper function to safely fetch and validate zones data with error handling"""
-    try:
-        logger.info(f"Attempting to fetch zones data for bounds: {left_long}, {right_long}, {top_lat}, {bottom_lat}")
-        zones_text = search_zones(left_long, right_long, top_lat, bottom_lat)
-        logger.info(f"Received response from external API: {zones_text[:200] if zones_text else 'None'}...")
-        
-        if not zones_text:
-            logger.error("External API returned empty response")
-            raise HTTPException(
-                status_code=503,
-                detail=ErrorResponse(
-                    error="External API Error",
-                    message="No response from external parking API"
-                ).dict()
-            )
+def _metadata_from_result(result: ZoneDataResult) -> Dict[str, Any]:
+    return {
+        "stale": result.stale,
+        "stale_reason": result.stale_reason,
+        "bounds_key": result.bounds_key,
+        "fetched_at": result.fetched_at,
+        "upstream_status": result.upstream_status,
+    }
 
-        zones_json = json.loads(zones_text)
 
-        # Validate the response structure using Pydantic model
-        try:
-            return ExternalAPIResponse(**zones_json)
-        except Exception as validation_error:
-            logger.error(f"External API response validation failed: {str(validation_error)}")
-            raise HTTPException(
-                status_code=503,
-                detail=ErrorResponse(
-                    error="Invalid API Response Structure",
-                    message=f"External API response doesn't match expected format: {str(validation_error)}"
-                ).dict()
-            )
+def get_cached_zones_data(
+    left_long: float, right_long: float, top_lat: float, bottom_lat: float, db: Session
+) -> ZoneDataResult:
+    """Get zones data with caching and persistent snapshot fallback"""
+    cache_key = make_bounds_key(left_long, right_long, top_lat, bottom_lat, precision=5)
 
-    except HTTPException:
-        # Re-raise HTTPExceptions from search_zones (already properly formatted)
-        raise
-    except json.JSONDecodeError as e:
-        logger.error(f"JSON parse error: {str(e)}")
-        raise HTTPException(
-            status_code=503,
-            detail=ErrorResponse(
-                error="JSON Parse Error",
-                message=f"Failed to parse external API response: {str(e)}"
-            ).dict()
-        )
-    except Exception as e:
-        logger.error(f"Error fetching parking data: {str(e)}")
-        raise HTTPException(
-            status_code=503,
-            detail=ErrorResponse(
-                error="External API Error",
-                message=f"Failed to fetch parking data: {str(e)}"
-            ).dict()
-        )
+    cache_time = cache_timestamps.get(cache_key)
+    cached_result = zone_cache.get(cache_key)
+    if cached_result and cache_time:
+        age_seconds = (datetime.now() - cache_time).seconds
+        if age_seconds < (CACHE_DURATION_MINUTES * 60):
+            logger.info("Cache hit for bounds: %s", cache_key)
+            return cached_result
+
+    logger.info("Cache miss for bounds: %s - fetching fresh data", cache_key)
+    fresh_result = fetch_zones_with_snapshot(left_long, right_long, top_lat, bottom_lat, db)
+
+    zone_cache[cache_key] = fresh_result
+    cache_timestamps[cache_key] = datetime.now()
+
+    # Clean up old cache entries (simple cleanup - keep only last 10)
+    if len(zone_cache) > 10:
+        oldest_key = min(cache_timestamps.keys(), key=lambda k: cache_timestamps[k])
+        zone_cache.pop(oldest_key, None)
+        cache_timestamps.pop(oldest_key, None)
+
+    return fresh_result
 
 
 @router.get("/api/test/bounds", response_model=BoundsInfoResponse)
@@ -134,66 +78,74 @@ def test_bounds(request: Request):
 
 @router.get("/api/data", response_model=ParkingDataResponse)
 @safe_rate_limit("120/minute")
-def get_data_default(request: Request):
+def get_data_default(request: Request, db: Session = Depends(get_db)):
     """Get parking data for default bounds (UC Davis main campus)"""
-    zones_response = get_cached_zones_data(
+    zone_result = get_cached_zones_data(
         DEFAULT_BOUNDS["left_long"],
         DEFAULT_BOUNDS["right_long"],
         DEFAULT_BOUNDS["top_lat"],
         DEFAULT_BOUNDS["bottom_lat"],
+        db,
     )
+    zones_response = zone_result.data
     # Convert Pydantic model to dict for compatibility with existing service functions
     locations = [zone.dict() for zone in zones_response.zones]
     parking_spots: Dict[str, ParkingSpotInfo] = {}
     get_description(parking_spots, locations)
-    return ParkingDataResponse(parkingSpots=parking_spots)
+    return ParkingDataResponse(parkingSpots=parking_spots, **_metadata_from_result(zone_result))
 
 
 @router.post("/api/data", response_model=ParkingDataResponse)
 @safe_rate_limit("120/minute")
-def get_data(request: Request, bounds: Bounds):
+def get_data(request: Request, bounds: Bounds, db: Session = Depends(get_db)):
     """Get parking data for custom bounds"""
-    zones_response = get_cached_zones_data(
+    zone_result = get_cached_zones_data(
         bounds.left_long,
         bounds.right_long,
         bounds.top_lat,
         bounds.bottom_lat,
+        db,
     )
+    zones_response = zone_result.data
     # Convert Pydantic model to dict for compatibility with existing service functions
     locations = [zone.dict() for zone in zones_response.zones]
     parking_spots: Dict[str, ParkingSpotInfo] = {}
     get_description(parking_spots, locations)
-    return ParkingDataResponse(parkingSpots=parking_spots)
+    return ParkingDataResponse(parkingSpots=parking_spots, **_metadata_from_result(zone_result))
 
 
 @router.get("/api/zones/{zone_code}", response_model=ZoneCoordinatesResponse)
 @safe_rate_limit("60/minute")
-def get_zone_coords(request: Request, zone_code: str):
+def get_zone_coords(request: Request, zone_code: str, db: Session = Depends(get_db)):
     """Get coordinates for a specific zone code"""
-    zones_response = get_cached_zones_data(
+    zone_result = get_cached_zones_data(
         CITY_BOUNDS["left_long"],
         CITY_BOUNDS["right_long"],
         CITY_BOUNDS["top_lat"],
         CITY_BOUNDS["bottom_lat"],
+        db,
     )
+    zones_response = zone_result.data
     # Convert Pydantic model to dict for compatibility with existing service functions
     locations = [zone.dict() for zone in zones_response.zones]
     coords = filter_by_zone(locations, zone_code)
     # Convert tuples to lists for JSON serialization
     coords_list = [[lat, lng] for lat, lng in coords]
-    return ZoneCoordinatesResponse(coordinates=coords_list)
+    return ZoneCoordinatesResponse(coordinates=coords_list, **_metadata_from_result(zone_result))
 
 @router.get("/api/raw-zones")
 @safe_rate_limit("20/minute")
-def get_raw_zones(request: Request):
+def get_raw_zones(request: Request, db: Session = Depends(get_db)):
     """Get raw zones data from external API"""
     try:
-        zones_response = get_cached_zones_data(
+        zone_result = get_cached_zones_data(
             CITY_BOUNDS["left_long"],
             CITY_BOUNDS["right_long"],
             CITY_BOUNDS["top_lat"],
             CITY_BOUNDS["bottom_lat"],
+            db,
         )
+        zones_response = zone_result.data
         # Convert Pydantic models to dict for JSON serialization
         zones_dict = [zone.dict() for zone in zones_response.zones]
 
@@ -202,29 +154,31 @@ def get_raw_zones(request: Request):
             zone["description"] = clean_description(zone.get("description", ""))
             zone["ext_description"] = clean_description(zone.get("ext_description", ""))
             zone["additional_info"] = clean_description(zone.get("additional_info", ""))
-        return {"zones": zones_dict}
+        return {"zones": zones_dict, **_metadata_from_result(zone_result)}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.get("/api/zones", response_model=ZonesListResponse)
 @safe_rate_limit("20/minute")
-def get_zones(request: Request):
+def get_zones(request: Request, db: Session = Depends(get_db)):
     """Get list of zone descriptions"""
-    zones_response = get_cached_zones_data(
+    zone_result = get_cached_zones_data(
         CITY_BOUNDS["left_long"],
         CITY_BOUNDS["right_long"],
         CITY_BOUNDS["top_lat"],
         CITY_BOUNDS["bottom_lat"],
+        db,
     )
+    zones_response = zone_result.data
     # Clean descriptions using the same cleaning function
     descriptions = [clean_description(zone.description) for zone in zones_response.zones]
-    return ZonesListResponse(zones=descriptions)
+    return ZonesListResponse(zones=descriptions, **_metadata_from_result(zone_result))
 
 @router.get("/api/filter/description_to_zones")
 @safe_rate_limit("60/minute")
-def get_description_to_zones(request: Request):
+def get_description_to_zones(request: Request, db: Session = Depends(get_db)):
     """Get mapping of zone descriptions to zone codes"""
-    all_zones_data = get_raw_zones(request)
+    all_zones_data = get_raw_zones(request, db)
     zones = {clean_description(zone["description"]): zone["code"] for zone in all_zones_data["zones"]}
     return zones
 
@@ -246,16 +200,18 @@ daily_stats = {
 
 @router.post("/api/analytics/search/{zone_code:path}")
 @safe_rate_limit("100/minute")
-def track_search(request: Request, zone_code: str):
+def track_search(request: Request, zone_code: str, db: Session = Depends(get_db)):
     """Track when a user searches for a zone"""
     try:
         # Get zone data for the zone name
-        zones_response = get_cached_zones_data(
+        zone_result = get_cached_zones_data(
             CITY_BOUNDS["left_long"],
             CITY_BOUNDS["right_long"],
             CITY_BOUNDS["top_lat"],
             CITY_BOUNDS["bottom_lat"],
+            db,
         )
+        zones_response = zone_result.data
 
         zone_name = "Unknown Zone"
         for zone in zones_response.zones:
@@ -365,18 +321,20 @@ def get_analytics_overview(request: Request):
 
 @router.get("/api/analytics/zones/{zone_code}", response_model=ZoneAnalytics)
 @safe_rate_limit("30/minute")
-def get_zone_analytics(request: Request, zone_code: str):
+def get_zone_analytics(request: Request, zone_code: str, db: Session = Depends(get_db)):
     """Get detailed analytics for a specific zone"""
     try:
         analytics = zone_analytics[zone_code]
 
         # Get zone name
-        zones_response = get_cached_zones_data(
+        zone_result = get_cached_zones_data(
             CITY_BOUNDS["left_long"],
             CITY_BOUNDS["right_long"],
             CITY_BOUNDS["top_lat"],
             CITY_BOUNDS["bottom_lat"],
+            db,
         )
+        zones_response = zone_result.data
 
         zone_name = "Unknown Zone"
         coordinates = None

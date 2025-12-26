@@ -8,6 +8,7 @@ from app.core.config import settings
 from app.core.logging import logger
 from app.core.database import engine
 from app.models.base import Base
+import app.models.zone_snapshot  # Ensure snapshot model is registered
 from app.routers.health import router as health_router
 from app.routers.zones import router as zones_router
 from app.core.database import get_db

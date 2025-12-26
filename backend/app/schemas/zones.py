@@ -17,6 +17,14 @@ class HealthResponse(BaseModel):
     status: Literal["ok"]
 
 
+class StaleMetadata(BaseModel):
+    stale: bool = False
+    stale_reason: Optional[str] = None
+    bounds_key: Optional[str] = None
+    fetched_at: Optional[str] = None
+    upstream_status: Optional[int] = None
+
+
 class Bounds(BaseModel):
     left_long: float
     right_long: float
@@ -31,19 +39,19 @@ class ParkingSpotInfo(BaseModel):
     additional_info: Optional[str] = None  # HTML string content from external API
 
 
-class ParkingDataResponse(BaseModel):
+class ParkingDataResponse(StaleMetadata):
     parkingSpots: Dict[str, ParkingSpotInfo]
 
 
-class ZoneCoordinatesResponse(BaseModel):
+class ZoneCoordinatesResponse(StaleMetadata):
     coordinates: List[List[float]]  # List of [lat, lng] pairs
 
 
-class ZonesListResponse(BaseModel):
+class ZonesListResponse(StaleMetadata):
     zones: List[str]
 
 
-class RawZonesResponse(BaseModel):
+class RawZonesResponse(StaleMetadata):
     zones: List[Zone]
 
 
