@@ -77,7 +77,8 @@ def _backoff_seconds(attempt: int) -> float:
 def fetch_zones_from_upstream(payload: Dict[str, Any], max_attempts: int = 3) -> Dict[str, Any]:
     last_err: Optional[Exception] = None
     cmd = payload.get("cmd")
-    params = {key: value for key, value in payload.items() if key != "cmd"}
+    # Include cmd in params so Lambda receives it in queryStringParameters
+    params = payload.copy()
 
     for attempt in range(1, max_attempts + 1):
         try:
@@ -89,6 +90,9 @@ def fetch_zones_from_upstream(payload: Dict[str, Any], max_attempts: int = 3) ->
 
             status = response.status_code
             content_type = response.headers.get("content-type", "")
+            logger.info(
+                "Upstream attempt %s status=%s content_type=%s", attempt, status, content_type
+            )
 
             if status in NON_RETRY_STATUSES:
                 record_proxy_failure(f"non-retry-status-{status}")
@@ -102,13 +106,17 @@ def fetch_zones_from_upstream(payload: Dict[str, Any], max_attempts: int = 3) ->
                 record_proxy_failure(f"retryable-status-{status}")
                 last_err = UpstreamFailed(status=status, reason=f"retryable status {status}")
             else:
-                response.raise_for_status()
                 try:
+                    parsed = response.json()
                     record_proxy_success()
-                    return response.json()
+                    return parsed
                 except ValueError:
                     record_proxy_failure("json-parse-failed")
-                    raise UpstreamBlocked(status=status, content_type=content_type, preview=_preview_text(response))
+                    preview = _preview_text(response)
+                    logger.warning(
+                        "Upstream returned invalid JSON (status=%s): %s", status, preview[:120]
+                    )
+                    raise UpstreamBlocked(status=status, content_type=content_type, preview=preview)
 
         except ProxyCircuitOpen as e:
             last_err = UpstreamFailed(status=None, reason=str(e))
@@ -205,4 +213,3 @@ def search_zones(left_long: float, right_long: float, top_lat: float, bottom_lat
     finally:
         with _singleflight_lock:
             _inflight_requests.pop(cache_key, None)
-

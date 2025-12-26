@@ -1,6 +1,15 @@
 import os
+from pathlib import Path
 from typing import Dict
 from functools import lru_cache
+from dotenv import load_dotenv
+
+# Load environment variables from .env file (only if file exists)
+# This is for local development. Environment variables already set
+# (e.g., by Render or system) will NOT be overridden.
+# Look for .env file in the backend directory (parent of app directory)
+env_path = Path(__file__).parent.parent.parent / ".env"
+load_dotenv(dotenv_path=env_path, override=False)
 
 
 class Settings:

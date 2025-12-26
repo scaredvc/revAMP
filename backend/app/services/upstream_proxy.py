@@ -152,7 +152,14 @@ def call_upstream(cmd: str, params: Dict[str, Any], timeout: Optional[int] = Non
 
     ensure_circuit_allows()
 
-    logger.info("Routing upstream call through proxy: cmd=%s", cmd)
+    # Log exactly what we're sending to Lambda (safe version)
+    logger.info(
+        "Proxy request url=%s cmd=%s params=%s token_present=%s",
+        proxy_url,
+        cmd,
+        params,
+        bool(token),
+    )
     resp = requests.get(
         proxy_url,
         params=query,
@@ -161,10 +168,29 @@ def call_upstream(cmd: str, params: Dict[str, Any], timeout: Optional[int] = Non
     )
 
     normalized_headers = {k.lower(): v for k, v in resp.headers.items()}
+    content_type = normalized_headers.get("content-type", "")
     proxy_resp = ProxyResponse(
         status_code=resp.status_code,
         headers=normalized_headers,
         text=resp.text,
     )
-    _microcache_set(cmd, query, proxy_resp)
+    cacheable = resp.status_code == 200 and "json" in content_type.lower()
+    if cacheable:
+        try:
+            json.loads(resp.text)
+            _microcache_set(cmd, query, proxy_resp)
+        except ValueError:
+            logger.warning(
+                "Skipping microcache due to invalid JSON for cmd=%s status=%s content_type=%s",
+                cmd,
+                resp.status_code,
+                content_type,
+            )
+    else:
+        logger.info(
+            "Skipping microcache for cmd=%s status=%s content_type=%s",
+            cmd,
+            resp.status_code,
+            content_type,
+        )
     return proxy_resp

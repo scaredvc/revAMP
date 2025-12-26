@@ -231,7 +231,6 @@ def track_search(request: Request, zone_code: str, db: Session = Depends(get_db)
         # Store the event
         search_events.append(search_event)
         logger.info(f"Search tracked: '{zone_code}' ({zone_name}) - Total searches: {len(search_events)}")
-        print(f"DEBUG: Zone code received: '{zone_code}'")
 
         # Update zone analytics
         zone_analytics[zone_code]["search_count"] += 1

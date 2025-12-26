@@ -4,8 +4,11 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
 
-# Get database URL from environment
-DATABASE_URL = os.getenv("DATABASE_URL")
+# Import settings to ensure .env is loaded
+from app.core.config import settings
+
+# Get database URL from settings (which loads from .env)
+DATABASE_URL = settings.DATABASE_URL
 
 # Handle Render's postgres:// vs postgresql:// URL format
 if DATABASE_URL and DATABASE_URL.startswith("postgres://"):
