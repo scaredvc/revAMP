@@ -6,6 +6,9 @@ from typing import Any, Dict, Optional
 
 import requests
 
+from app.core.config import settings
+from app.core.logging import logger
+
 MICRO_CACHE_TTL_SECONDS = 2
 _micro_cache: Dict[str, Dict[str, Any]] = {}
 
@@ -15,9 +18,6 @@ CB_COOLDOWN_SECONDS = settings.PROXY_CIRCUIT_COOLDOWN_SECONDS
 _cb_failures: deque = deque()
 _cb_open_until: float = 0.0
 _cb_lock = threading.Lock()
-
-from app.core.config import settings
-from app.core.logging import logger
 
 
 class ProxyConfigurationError(Exception):
