@@ -1,6 +1,8 @@
 'use client'
 import { createContext, useContext, useState, useEffect } from 'react'
 
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
+
 const AuthContext = createContext()
 export function useAuth() {
     const context = useContext(AuthContext)
@@ -8,6 +10,22 @@ export function useAuth() {
         throw new Error('useAuth must be used within an AuthProvider')
     }
     return context
+}
+
+// Helper to guarantee JSON payloads (prevents browsers from defaulting to text/plain)
+const postJson = async (path, payload, init = {}) => {
+    const response = await fetch(`${API_BASE}${path}`, {
+        method: 'POST',
+        ...init,
+        headers: {
+            ...(init.headers || {}),
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+        },
+        body: JSON.stringify(payload ?? {}),
+    })
+
+    return response
 }
 
 export function AuthProvider({ children }) {
@@ -42,7 +60,7 @@ export function AuthProvider({ children }) {
 
     const fetchUserInfo = async (authToken) => {
         try {
-            const apiUrl = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/auth/me`
+            const apiUrl = `${API_BASE}/auth/me`
             const response = await fetch(apiUrl, {
                 headers: {
                     'Authorization': `Bearer ${authToken}`,
@@ -72,13 +90,7 @@ export function AuthProvider({ children }) {
 
     const login = async (email, password) => {
         try {
-            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/auth/login`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ email: email, password })
-            })
+            const response = await postJson('/auth/login', { email, password })
 
             if (response.ok) {
                 const data = await response.json()
@@ -117,17 +129,11 @@ export function AuthProvider({ children }) {
 
     const register = async (email, password, fullName) => {
         try {
-            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/auth/register`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ 
-                    email, 
-                    username: email, // Use email as username for now
-                    password, 
-                    full_name: fullName 
-                })
+            const response = await postJson('/auth/register', { 
+                email, 
+                username: email, // Use email as username for now
+                password, 
+                full_name: fullName 
             })
 
             if (response.ok) {
@@ -135,13 +141,7 @@ export function AuthProvider({ children }) {
                 
                 // For registration, the response is the user object, not a token
                 // We need to login after registration to get the token
-                const loginResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/auth/login`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ email: email, password })
-                })
+                const loginResponse = await postJson('/auth/login', { email, password })
                 
                 if (loginResponse.ok) {
                     const loginData = await loginResponse.json()
