@@ -34,6 +34,7 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+logger.info("CORS origins configured: %s", settings.cors_origins_list)
 
 
 # SlowAPI limiter middleware
