@@ -1,6 +1,6 @@
 # routers/favorites.py
 from typing import List
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Request, status
 from sqlalchemy.orm import Session
 
 from app.core.auth import get_current_active_user
@@ -15,6 +15,7 @@ router = APIRouter()
 @router.post("/", response_model=FavoriteZoneResponse)
 @safe_rate_limit("30/minute")
 async def add_favorite_zone(
+    request: Request,
     favorite_data: FavoriteZoneCreate,
     current_user: User = Depends(get_current_active_user),
     db: Session = Depends(get_db)
@@ -50,6 +51,7 @@ async def add_favorite_zone(
 @router.get("/", response_model=List[FavoriteZoneResponse])
 @safe_rate_limit("60/minute")
 async def get_favorite_zones(
+    request: Request,
     current_user: User = Depends(get_current_active_user),
     db: Session = Depends(get_db)
 ):
@@ -62,6 +64,7 @@ async def get_favorite_zones(
 @router.put("/{favorite_id}", response_model=FavoriteZoneResponse)
 @safe_rate_limit("30/minute")
 async def update_favorite_zone(
+    request: Request,
     favorite_id: int,
     favorite_data: FavoriteZoneUpdate,
     current_user: User = Depends(get_current_active_user),
@@ -88,6 +91,7 @@ async def update_favorite_zone(
 @router.delete("/{favorite_id}")
 @safe_rate_limit("30/minute")
 async def remove_favorite_zone(
+    request: Request,
     favorite_id: int,
     current_user: User = Depends(get_current_active_user),
     db: Session = Depends(get_db)
@@ -108,6 +112,7 @@ async def remove_favorite_zone(
 @router.post("/{favorite_id}/use")
 @safe_rate_limit("60/minute")
 async def record_zone_usage(
+    request: Request,
     favorite_id: int,
     current_user: User = Depends(get_current_active_user),
     db: Session = Depends(get_db)

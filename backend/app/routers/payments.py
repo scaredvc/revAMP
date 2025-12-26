@@ -28,6 +28,7 @@ else:
 @router.post("/create-payment-intent", response_model=PaymentIntentResponse)
 @safe_rate_limit("10/minute")
 async def create_payment_intent(
+    request: Request,
     payment_data: PaymentCreate,
     current_user: User = Depends(get_current_active_user),
     db: Session = Depends(get_db)
@@ -142,7 +143,7 @@ async def handle_payment_failure(payment_intent, db: Session):
 
 @router.get("/rates", response_model=List[ParkingRate])
 @safe_rate_limit("60/minute")
-async def get_parking_rates():
+async def get_parking_rates(request: Request):
     """Get current parking rates"""
     # This would typically come from a database or configuration
     rates = [
@@ -170,6 +171,7 @@ async def get_parking_rates():
 @router.get("/history", response_model=List[PaymentResponse])
 @safe_rate_limit("60/minute")
 async def get_payment_history(
+    request: Request,
     skip: int = 0,
     limit: int = 50,
     current_user: User = Depends(get_current_active_user),
@@ -184,6 +186,7 @@ async def get_payment_history(
 @router.get("/stats", response_model=PaymentStats)
 @safe_rate_limit("30/minute")
 async def get_payment_stats(
+    request: Request,
     current_user: User = Depends(get_current_active_user),
     db: Session = Depends(get_db)
 ):

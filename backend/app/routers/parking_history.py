@@ -1,7 +1,7 @@
 # routers/parking_history.py
 from typing import List, Optional
 from datetime import datetime
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Request, status
 from sqlalchemy.orm import Session
 
 from app.core.auth import get_current_active_user
@@ -19,6 +19,7 @@ router = APIRouter()
 @router.post("/start", response_model=ParkingHistoryResponse)
 @safe_rate_limit("30/minute")
 async def start_parking_session(
+    request: Request,
     session_data: ParkingHistoryCreate,
     current_user: User = Depends(get_current_active_user),
     db: Session = Depends(get_db)
@@ -43,6 +44,7 @@ async def start_parking_session(
 @router.put("/end/{session_id}", response_model=ParkingHistoryResponse)
 @safe_rate_limit("30/minute")
 async def end_parking_session(
+    request: Request,
     session_id: int,
     current_user: User = Depends(get_current_active_user),
     db: Session = Depends(get_db)
@@ -70,6 +72,7 @@ async def end_parking_session(
 @router.get("/", response_model=List[ParkingHistoryResponse])
 @safe_rate_limit("60/minute")
 async def get_parking_history(
+    request: Request,
     skip: int = 0,
     limit: int = 50,
     status_filter: Optional[str] = None,
@@ -88,6 +91,7 @@ async def get_parking_history(
 @router.get("/active", response_model=List[ParkingHistoryResponse])
 @safe_rate_limit("60/minute")
 async def get_active_sessions(
+    request: Request,
     current_user: User = Depends(get_current_active_user),
     db: Session = Depends(get_db)
 ):
@@ -101,6 +105,7 @@ async def get_active_sessions(
 @router.get("/stats", response_model=ParkingHistoryStats)
 @safe_rate_limit("30/minute")
 async def get_parking_stats(
+    request: Request,
     current_user: User = Depends(get_current_active_user),
     db: Session = Depends(get_db)
 ):
@@ -141,6 +146,7 @@ async def get_parking_stats(
 @router.delete("/{session_id}")
 @safe_rate_limit("10/minute")
 async def delete_parking_session(
+    request: Request,
     session_id: int,
     current_user: User = Depends(get_current_active_user),
     db: Session = Depends(get_db)
