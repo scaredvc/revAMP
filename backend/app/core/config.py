@@ -49,7 +49,18 @@ class Settings:
     RATE_LIMIT_HOUR: str = os.getenv("RATE_LIMIT_HOUR", "50/hour")
 
     # CORS Configuration
-    CORS_ORIGINS: str = os.getenv("CORS_ORIGINS", "http://localhost:3000,http://127.0.0.1:3000,https://amp-parking.onrender.com")
+    CORS_ORIGINS: str = os.getenv(
+        "CORS_ORIGINS",
+        (
+            "http://localhost:3000,"
+            "http://127.0.0.1:3000,"
+            "http://localhost:5173,"
+            "https://rev-amp-front.vercel.app,"
+            "https://rev-amp-front-git-main-scaredvcs-projects.vercel.app,"
+            "https://rev-amp-front-mmideq9r9-scaredvcs-projects.vercel.app,"
+            "https://amp-parking.onrender.com"
+        ),
+    )
     CORS_ALLOW_CREDENTIALS: bool = os.getenv("CORS_ALLOW_CREDENTIALS", "true").lower() == "true"
 
     # Default UC Davis bounds (main campus area)
