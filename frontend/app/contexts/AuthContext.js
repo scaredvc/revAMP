@@ -25,7 +25,8 @@ const postJson = async (path, payload, init = {}) => {
         body: JSON.stringify(payload ?? {}),
     })
 
-    return response
+    const data = await response.json().catch(() => ({}))
+    return { response, data }
 }
 
 export function AuthProvider({ children }) {
@@ -90,11 +91,9 @@ export function AuthProvider({ children }) {
 
     const login = async (email, password) => {
         try {
-            const response = await postJson('/auth/login', { email, password })
+            const { response, data } = await postJson('/auth/login', { email, password })
 
             if (response.ok) {
-                const data = await response.json()
-                
                 localStorage.setItem('parkingToken', data.access_token)
                 
                 setToken(data.access_token)
@@ -107,16 +106,14 @@ export function AuthProvider({ children }) {
                 
                 return { success: true }
             } else {
-                const errorData = await response.json()
-                // Handle different error formats from backend
                 let errorMessage = 'Login failed'
-                if (errorData.detail) {
-                    if (typeof errorData.detail === 'string') {
-                        errorMessage = errorData.detail
-                    } else if (Array.isArray(errorData.detail)) {
-                        errorMessage = errorData.detail.map(err => err.msg || 'Validation error').join(', ')
-                    } else if (typeof errorData.detail === 'object') {
-                        errorMessage = errorData.detail.msg || 'Validation error'
+                if (data.detail) {
+                    if (typeof data.detail === 'string') {
+                        errorMessage = data.detail
+                    } else if (Array.isArray(data.detail)) {
+                        errorMessage = data.detail.map(err => err.msg || 'Validation error').join(', ')
+                    } else if (typeof data.detail === 'object') {
+                        errorMessage = data.detail.msg || 'Validation error'
                     }
                 }
                 return { success: false, error: errorMessage }
@@ -129,7 +126,7 @@ export function AuthProvider({ children }) {
 
     const register = async (email, password, fullName) => {
         try {
-            const response = await postJson('/auth/register', { 
+            const { response, data } = await postJson('/auth/register', { 
                 email, 
                 username: email, // Use email as username for now
                 password, 
@@ -137,32 +134,28 @@ export function AuthProvider({ children }) {
             })
 
             if (response.ok) {
-                const data = await response.json()
-                
                 // For registration, the response is the user object, not a token
                 // We need to login after registration to get the token
                 const loginResponse = await postJson('/auth/login', { email, password })
                 
-                if (loginResponse.ok) {
-                    const loginData = await loginResponse.json()
-                    localStorage.setItem('parkingToken', loginData.access_token)
-                    setToken(loginData.access_token)
+                if (loginResponse.response.ok) {
+                    localStorage.setItem('parkingToken', loginResponse.data.access_token)
+                    setToken(loginResponse.data.access_token)
                     setUser(data) // Use the user data from registration
                     return { success: true }
                 } else {
-                    return { success: false, error: 'Registration successful but login failed' }
+                    const loginError = loginResponse.data?.detail
+                    return { success: false, error: typeof loginError === 'string' ? loginError : 'Registration successful but login failed' }
                 }
             } else {
-                const errorData = await response.json()
-                // Handle different error formats from backend
                 let errorMessage = 'Registration failed'
-                if (errorData.detail) {
-                    if (typeof errorData.detail === 'string') {
-                        errorMessage = errorData.detail
-                    } else if (Array.isArray(errorData.detail)) {
-                        errorMessage = errorData.detail.map(err => err.msg || 'Validation error').join(', ')
-                    } else if (typeof errorData.detail === 'object') {
-                        errorMessage = errorData.detail.msg || 'Validation error'
+                if (data.detail) {
+                    if (typeof data.detail === 'string') {
+                        errorMessage = data.detail
+                    } else if (Array.isArray(data.detail)) {
+                        errorMessage = data.detail.map(err => err.msg || 'Validation error').join(', ')
+                    } else if (typeof data.detail === 'object') {
+                        errorMessage = data.detail.msg || 'Validation error'
                     }
                 }
                 return { success: false, error: errorMessage }
