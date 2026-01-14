@@ -16,12 +16,8 @@ export default function LoginPage() {
 
     return (
         <main className="container mx-auto p-8 min-h-screen flex items-center justify-center" style={{background: 'var(--ucd-darker)'}}>
-            <div className="w-full max-w-lg space-y-6">
-                <div className="text-center">
-                    <h1 className="text-3xl font-bold mb-2" style={{color: 'var(--ucd-light)'}}>Sign in to revAMP</h1>
-                    <p style={{color: 'var(--ucd-muted)'}}>Access your dashboard and parking tools.</p>
-                </div>
-                <LoginForm />
+            <div className="w-full max-w-lg">
+                <LoginForm showHero={true} />
             </div>
         </main>
     )
