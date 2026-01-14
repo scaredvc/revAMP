@@ -80,7 +80,13 @@ class Settings:
     }
 
     # Database Configuration
-    DATABASE_URL: str = os.getenv("DATABASE_URL", "sqlite:///./revamp.db")
+    APP_ENV: str = os.getenv("APP_ENV", "local").lower()
+    DATABASE_URL_LOCAL: str = os.getenv("DATABASE_URL_LOCAL", "sqlite:///./revamp.db")
+    DATABASE_URL_PROD: str = os.getenv("DATABASE_URL_PROD", "")
+    DATABASE_URL: str = os.getenv(
+        "DATABASE_URL",
+        DATABASE_URL_LOCAL if APP_ENV == "local" else (DATABASE_URL_PROD or DATABASE_URL_LOCAL),
+    )
     SECRET_KEY: str = os.getenv("SECRET_KEY", "your-secret-key-here-change-in-production")
     ALGORITHM: str = os.getenv("ALGORITHM", "HS256")
     ACCESS_TOKEN_EXPIRE_MINUTES: int = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "30"))
