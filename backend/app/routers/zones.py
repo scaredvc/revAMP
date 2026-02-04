@@ -1,3 +1,4 @@
+import re
 import uuid
 from datetime import datetime, timedelta
 from typing import Any, Dict
@@ -22,6 +23,11 @@ from app.services.zone_snapshots import make_bounds_key
 from app.core.shared import safe_rate_limit, DEFAULT_BOUNDS, CITY_BOUNDS, get_bounds_info
 from app.core.logging import logger
 from app.core.database import get_db
+from app.core.auth import get_current_active_user
+from app.models.user import User
+
+# Zone code validation pattern (alphanumeric, hyphens, underscores, slashes, max 100 chars)
+ZONE_CODE_PATTERN = re.compile(r'^[\w\-/. ]{1,100}$')
 
 # In-memory cache to reduce repeated DB lookups between requests
 zone_cache: Dict[str, ZoneDataResult] = {}
@@ -203,6 +209,10 @@ daily_stats = {
 def track_search(request: Request, zone_code: str, db: Session = Depends(get_db)):
     """Track when a user searches for a zone"""
     try:
+        # Validate zone_code input
+        if not ZONE_CODE_PATTERN.match(zone_code):
+            raise HTTPException(status_code=400, detail="Invalid zone code format")
+
         # Get zone data for the zone name
         zone_result = get_cached_zones_data(
             CITY_BOUNDS["left_long"],
@@ -219,13 +229,15 @@ def track_search(request: Request, zone_code: str, db: Session = Depends(get_db)
                 zone_name = clean_description(zone.description)
                 break
 
-        # Create search event
+        # Create search event (anonymize IP for privacy)
+        client_ip = request.client.host if request.client else "unknown"
+        anonymized_ip = ".".join(client_ip.split(".")[:2] + ["x", "x"]) if "." in client_ip else "anonymous"
         search_event = SearchEvent(
             zone_code=zone_code,
             zone_name=zone_name,
             timestamp=datetime.now().isoformat(),
-            client_ip=request.client.host,
-            user_agent=request.headers.get("user-agent")
+            client_ip=anonymized_ip,
+            user_agent=request.headers.get("user-agent", "")[:200]
         )
 
         # Store the event
@@ -259,6 +271,9 @@ def track_search(request: Request, zone_code: str, db: Session = Depends(get_db)
 def track_directions_request(request: Request, zone_code: str):
     """Track when a user requests directions to a zone"""
     try:
+        # Validate zone_code input
+        if not ZONE_CODE_PATTERN.match(zone_code):
+            raise HTTPException(status_code=400, detail="Invalid zone code format")
         # Update zone analytics
         zone_analytics[zone_code]["directions_requested"] += 1
 
@@ -434,8 +449,8 @@ def get_daily_summary(request: Request):
 
 @router.post("/api/analytics/reset-daily")
 @safe_rate_limit("5/minute")
-def reset_daily_stats(request: Request):
-    """Reset daily statistics (for testing/demo purposes)"""
+def reset_daily_stats(request: Request, current_user: User = Depends(get_current_active_user)):
+    """Reset daily statistics (requires authentication)"""
     try:
         global daily_stats, peak_hours_data
         daily_stats = {
@@ -493,8 +508,8 @@ def get_cache_status(request: Request):
 
 @router.post("/api/cache/clear")
 @safe_rate_limit("5/minute")
-def clear_cache(request: Request):
-    """Clear all cached data (for testing/admin purposes)"""
+def clear_cache(request: Request, current_user: User = Depends(get_current_active_user)):
+    """Clear all cached data (requires authentication)"""
     try:
         global zone_cache, cache_timestamps
         cleared_entries = len(zone_cache)

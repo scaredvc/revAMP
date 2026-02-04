@@ -61,8 +61,11 @@ def health_db():
             conn.execute(text("SELECT 1"))
         return {"db": "ok"}
     except Exception as e:
-        logger.error(f"Database health check failed: {e}")
-        return {"db": "error", "message": str(e)}, 503
+        logger.error("Database health check failed: %s", e)
+        return JSONResponse(
+            status_code=503,
+            content={"db": "error", "message": "Database unavailable"}
+        )
 
 @app.exception_handler(RateLimitExceeded)
 async def rate_limit_handler(request: Request, exc: RateLimitExceeded):

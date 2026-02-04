@@ -9,17 +9,21 @@ export default function Home() {
 
     useEffect(() => {
         if (!isLoading) {
-            // Single-entry experience: redirect to dashboard if authenticated, login otherwise
             router.replace(isAuthenticated ? '/dashboard' : '/login')
         }
     }, [isLoading, isAuthenticated, router])
 
-    // Show loading state while checking auth
     return (
-        <main className="min-h-screen flex items-center justify-center" style={{background: 'var(--ucd-darker)'}}>
-            <div className="flex items-center justify-center gap-3 text-sm" style={{color: 'var(--ucd-muted)'}}>
-                <span className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-500"></span>
-                Loading...
+        <main className="min-h-screen flex items-center justify-center bg-midnight relative overflow-hidden">
+            {/* Background orbs */}
+            <div className="gradient-orb gold" style={{ width: 500, height: 500, top: -100, right: -100 }} />
+            <div className="gradient-orb aggie" style={{ width: 600, height: 600, bottom: -200, left: -200 }} />
+
+            <div className="flex flex-col items-center gap-6 relative z-10">
+                <div className="w-10 h-10 rounded-full border-2 border-gold/30 border-t-gold animate-spin" />
+                <p className="text-sm font-mono text-gold/60 tracking-widest uppercase">
+                    Loading
+                </p>
             </div>
         </main>
     )

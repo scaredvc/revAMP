@@ -34,6 +34,8 @@ if DATABASE_URL:
         DATABASE_URL,
         pool_pre_ping=True,  # Verify connections before use
         pool_recycle=300,    # Recycle connections after 5 minutes (prevents stale connections)
+        pool_size=5,         # Maintain 5 connections in the pool
+        max_overflow=10,     # Allow up to 10 overflow connections
         connect_args=connect_args,
     )
 else:

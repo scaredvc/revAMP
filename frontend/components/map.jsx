@@ -3,6 +3,103 @@
 import { useEffect, useRef, useState, forwardRef, useImperativeHandle } from "react";
 import { Loader } from "@googlemaps/js-api-loader";
 
+// Refined dark map style that matches our midnight aesthetic
+const MAP_STYLES = [
+  { elementType: "geometry", stylers: [{ color: "#151B2E" }] },
+  { elementType: "labels.text.stroke", stylers: [{ color: "#0B0F1A" }] },
+  { elementType: "labels.text.fill", stylers: [{ color: "#555566" }] },
+  {
+    featureType: "administrative",
+    elementType: "geometry.stroke",
+    stylers: [{ color: "#1A2036" }],
+  },
+  {
+    featureType: "administrative.land_parcel",
+    elementType: "labels.text.fill",
+    stylers: [{ color: "#555566" }],
+  },
+  {
+    featureType: "landscape.man_made",
+    elementType: "geometry.fill",
+    stylers: [{ color: "#1A2036" }],
+  },
+  {
+    featureType: "landscape.natural",
+    elementType: "geometry",
+    stylers: [{ color: "#151B2E" }],
+  },
+  {
+    featureType: "poi",
+    elementType: "geometry",
+    stylers: [{ color: "#1A2036" }],
+  },
+  {
+    featureType: "poi",
+    elementType: "labels.text.fill",
+    stylers: [{ color: "#6B7280" }],
+  },
+  {
+    featureType: "poi.park",
+    elementType: "geometry.fill",
+    stylers: [{ color: "#0E2420" }],
+  },
+  {
+    featureType: "poi.park",
+    elementType: "labels.text.fill",
+    stylers: [{ color: "#2DD4A8" }, { lightness: -30 }],
+  },
+  {
+    featureType: "road",
+    elementType: "geometry",
+    stylers: [{ color: "#1E2540" }],
+  },
+  {
+    featureType: "road",
+    elementType: "geometry.stroke",
+    stylers: [{ color: "#0B0F1A" }],
+  },
+  {
+    featureType: "road",
+    elementType: "labels.text.fill",
+    stylers: [{ color: "#8A8A99" }],
+  },
+  {
+    featureType: "road.highway",
+    elementType: "geometry",
+    stylers: [{ color: "#252D4A" }],
+  },
+  {
+    featureType: "road.highway",
+    elementType: "geometry.stroke",
+    stylers: [{ color: "#0B0F1A" }],
+  },
+  {
+    featureType: "road.highway",
+    elementType: "labels.text.fill",
+    stylers: [{ color: "#D4A843" }, { lightness: -20 }],
+  },
+  {
+    featureType: "transit",
+    elementType: "geometry",
+    stylers: [{ color: "#1A2036" }],
+  },
+  {
+    featureType: "transit.station",
+    elementType: "labels.text.fill",
+    stylers: [{ color: "#D4A843" }],
+  },
+  {
+    featureType: "water",
+    elementType: "geometry",
+    stylers: [{ color: "#0A1628" }],
+  },
+  {
+    featureType: "water",
+    elementType: "labels.text.fill",
+    stylers: [{ color: "#1A6499" }],
+  },
+];
+
 const Map = forwardRef(({ parkingSpots, onBoundsChanged, selectedSpot, isUpdating }, ref) => {
   const mapRef = useRef(null);
   const [googleMaps, setGoogleMaps] = useState(null);
@@ -15,7 +112,6 @@ const Map = forwardRef(({ parkingSpots, onBoundsChanged, selectedSpot, isUpdatin
   useImperativeHandle(ref, () => ({
     focusSpot: (spot) => {
       if (!mapInstance || !spot) return;
-      
       const marker = markersRef.current[spot.name];
       if (marker) {
         mapInstance.panTo(spot.coordinates[0]);
@@ -25,32 +121,29 @@ const Map = forwardRef(({ parkingSpots, onBoundsChanged, selectedSpot, isUpdatin
   }));
 
   useEffect(() => {
-    if (selectedSpot) {
+    if (selectedSpot && mapInstance) {
       const marker = markersRef.current[selectedSpot.name];
       if (marker) {
         mapInstance.panTo(selectedSpot.coordinates[0]);
         google.maps.event.trigger(marker, 'click');
       }
     }
-  }, [selectedSpot]);
+  }, [selectedSpot, mapInstance]);
 
   useEffect(() => {
     const initMap = async () => {
       if (!process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY) return;
-
       try {
         const loader = new Loader({
           apiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY,
           version: "weekly",
         });
-
         const google = await loader.load();
         setGoogleMaps(google);
       } catch (error) {
-        console.error('Failed to load Google Maps:', error);
+        // Map loading failed silently
       }
     };
-
     initMap();
   }, []);
 
@@ -61,164 +154,100 @@ const Map = forwardRef(({ parkingSpots, onBoundsChanged, selectedSpot, isUpdatin
       const map = new googleMaps.maps.Map(mapRef.current, {
         center: { lat: 40.7128, lng: -74.0060 },
         zoom: 15,
-        styles: [
-          {
-            featureType: "all",
-            elementType: "geometry",
-            stylers: [{ color: "#2d3748" }]
-          },
-          {
-            featureType: "road",
-            elementType: "geometry",
-            stylers: [{ color: "#4a5568" }]
-          },
-          {
-            featureType: "road",
-            elementType: "labels.text.fill",
-            stylers: [{ color: "#ffffff" }]
-          },
-          {
-            featureType: "road",
-            elementType: "labels.text.stroke",
-            stylers: [{ color: "#1a1a1a" }, { weight: 1 }]
-          },
-          {
-            featureType: "water",
-            elementType: "geometry",
-            stylers: [{ color: "#1a365d" }]
-          },
-          {
-            featureType: "poi",
-            elementType: "labels.text.fill",
-            stylers: [{ color: "#f1f5f9" }]
-          },
-          {
-            featureType: "poi",
-            elementType: "labels.text.stroke",
-            stylers: [{ color: "#1a1a1a" }, { weight: 1 }]
-          },
-          {
-            featureType: "landscape",
-            elementType: "geometry",
-            stylers: [{ color: "#374151" }]
-          }
-        ]
+        styles: MAP_STYLES,
+        disableDefaultUI: false,
+        zoomControl: true,
+        mapTypeControl: false,
+        streetViewControl: false,
+        fullscreenControl: true,
+        zoomControlOptions: {
+          position: googleMaps.maps.ControlPosition.RIGHT_CENTER,
+        },
       });
 
       setMapInstance(map);
 
       map.addListener('dragstart', () => {
         isDragging.current = true;
-        // Clear any pending debounced calls when dragging starts
-        if (debounceTimeout.current) {
-          clearTimeout(debounceTimeout.current);
-        }
+        if (debounceTimeout.current) clearTimeout(debounceTimeout.current);
       });
 
       map.addListener('dragend', () => {
         isDragging.current = false;
-        // Wait a bit after drag ends before fetching new data
-        if (debounceTimeout.current) {
-          clearTimeout(debounceTimeout.current);
-        }
-        
+        if (debounceTimeout.current) clearTimeout(debounceTimeout.current);
         debounceTimeout.current = setTimeout(() => {
           const bounds = map.getBounds();
           const ne = bounds.getNorthEast();
           const sw = bounds.getSouthWest();
-          
-
-          
           onBoundsChanged({
             left_long: sw.lng(),
             right_long: ne.lng(),
             top_lat: ne.lat(),
             bottom_lat: sw.lat()
           });
-        }, 500); // Increased delay to reduce API calls
+        }, 500);
       });
 
       map.addListener('zoom_changed', () => {
-        // Only handle zoom changes if not currently dragging
         if (isDragging.current) return;
-        
-        if (debounceTimeout.current) {
-          clearTimeout(debounceTimeout.current);
-        }
-        
+        if (debounceTimeout.current) clearTimeout(debounceTimeout.current);
         debounceTimeout.current = setTimeout(() => {
-          // Double-check we're still not dragging
           if (isDragging.current) return;
-          
           const bounds = map.getBounds();
           const ne = bounds.getNorthEast();
           const sw = bounds.getSouthWest();
-          
-
-          
           onBoundsChanged({
             left_long: sw.lng(),
             right_long: ne.lng(),
             top_lat: ne.lat(),
             bottom_lat: sw.lat()
           });
-        }, 800); // Increased delay for zoom changes
+        }, 800);
       });
     }
 
-    // Cleanup function to clear timeout when component unmounts
     return () => {
-      if (debounceTimeout.current) {
-        clearTimeout(debounceTimeout.current);
-      }
+      if (debounceTimeout.current) clearTimeout(debounceTimeout.current);
     };
   }, [googleMaps, mapRef.current, onBoundsChanged]);
 
-  // Separate effect to center map when parking spots data arrives
+  // Center map on first data load
   useEffect(() => {
     if (!mapInstance || !parkingSpots.length) return;
-
-    // Only center the map if it hasn't been centered yet (first load)
     if (mapInstance.getCenter().lat() === 40.7128 && mapInstance.getCenter().lng() === -74.0060) {
-      const validSpot = parkingSpots.find(spot => 
-        spot.coordinates && 
-        spot.coordinates[0] && 
-        typeof spot.coordinates[0].lat === 'number' && 
+      const validSpot = parkingSpots.find(spot =>
+        spot.coordinates &&
+        spot.coordinates[0] &&
+        typeof spot.coordinates[0].lat === 'number' &&
         typeof spot.coordinates[0].lng === 'number'
       );
-
       if (validSpot) {
         mapInstance.setCenter(validSpot.coordinates[0]);
       }
     }
   }, [parkingSpots, mapInstance]);
 
+  // Update markers
   useEffect(() => {
     if (!mapInstance || !googleMaps || !parkingSpots.length) return;
 
-
-
-    if (activeInfoWindow.current) {
-      activeInfoWindow.current.close();
-    }
-    Object.values(markersRef.current).forEach(marker => {
-      marker.setMap(null);
-    });
+    if (activeInfoWindow.current) activeInfoWindow.current.close();
+    Object.values(markersRef.current).forEach(marker => marker.setMap(null));
     markersRef.current = {};
 
     parkingSpots.forEach((spot) => {
       try {
-        // Create custom marker icon - showing as available for user experience
+        // Custom marker - gold/sage pin
         const markerIcon = {
           url: `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(`
-            <svg width="32" height="32" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
-              <circle cx="16" cy="16" r="14" fill="#10B981" stroke="white" stroke-width="3"/>
-              <circle cx="16" cy="16" r="8" fill="white" opacity="0.9"/>
-              <path d="M12 16l3 3 5-5" stroke="#10B981" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+            <svg width="28" height="28" viewBox="0 0 28 28" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="14" cy="14" r="12" fill="#D4A843" stroke="#0B0F1A" stroke-width="2.5"/>
+              <circle cx="14" cy="14" r="5" fill="#0B0F1A" opacity="0.7"/>
+              <circle cx="14" cy="14" r="2.5" fill="white" opacity="0.9"/>
             </svg>
           `)}`,
-          scaledSize: new google.maps.Size(32, 32),
-          anchor: new google.maps.Point(16, 16)
+          scaledSize: new google.maps.Size(28, 28),
+          anchor: new google.maps.Point(14, 14)
         };
 
         const marker = new googleMaps.maps.Marker({
@@ -235,14 +264,12 @@ const Map = forwardRef(({ parkingSpots, onBoundsChanged, selectedSpot, isUpdatin
               <div class="info-title-section">
                 <h3 class="info-title">${spot.name}</h3>
                 <div class="info-status">
-                  <span class="status-badge available">Available</span>
+                  <span class="status-badge available">Active</span>
                 </div>
               </div>
             </div>
             <div class="info-content">
-              ${spot.description ? `
-                <p class="info-description">${spot.description}</p>
-              ` : ''}
+              ${spot.description ? `<p class="info-description">${spot.description}</p>` : ''}
               ${spot.additionalInfo ? `
                 <div class="info-details">
                   <span class="detail-item">${spot.additionalInfo}</span>
@@ -250,11 +277,8 @@ const Map = forwardRef(({ parkingSpots, onBoundsChanged, selectedSpot, isUpdatin
               ` : ''}
             </div>
             <div class="info-footer">
-              <button class="info-button primary" onclick="window.dispatchEvent(new CustomEvent('getDirections', {detail: '${spot.name}'}))">
-                Get Directions
-              </button>
-              <button class="info-button secondary" onclick="window.dispatchEvent(new CustomEvent('viewDetails', {detail: '${spot.name}'}))">
-                View Details
+              <button class="info-button primary" onclick="window.dispatchEvent(new CustomEvent('getDirections', {detail: '${spot.name.replace(/'/g, "\\'")}'}))">
+                Directions
               </button>
             </div>
           </div>
@@ -265,76 +289,53 @@ const Map = forwardRef(({ parkingSpots, onBoundsChanged, selectedSpot, isUpdatin
           maxWidth: 300
         });
 
-        marker.addListener('click', async () => {
-          if (activeInfoWindow.current) {
-            activeInfoWindow.current.close();
-          }
-
-          // Track search analytics when user clicks on map marker
-          try {
-            await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/analytics/search/${encodeURIComponent(spot.name)}`, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' }
-            }).catch(error => console.warn('Map marker analytics tracking failed:', error));
-          } catch (error) {
-            console.warn('Map marker analytics tracking failed:', error);
-          }
-
-          infoWindow.open({
-            anchor: marker,
-            map: mapInstance
-          });
-
+        marker.addListener('click', () => {
+          if (activeInfoWindow.current) activeInfoWindow.current.close();
+          infoWindow.open({ anchor: marker, map: mapInstance });
           activeInfoWindow.current = infoWindow;
         });
 
         mapInstance.addListener('click', () => {
-          if (activeInfoWindow.current) {
-            activeInfoWindow.current.close();
-          }
+          if (activeInfoWindow.current) activeInfoWindow.current.close();
         });
 
         markersRef.current[spot.name] = marker;
       } catch (error) {
-        console.error('Error creating marker for', spot.name, ':', error);
+        // Skip markers that fail
       }
     });
 
     return () => {
-      if (activeInfoWindow.current) {
-        activeInfoWindow.current.close();
-      }
-      Object.values(markersRef.current).forEach(marker => {
-        marker.setMap(null);
-      });
+      if (activeInfoWindow.current) activeInfoWindow.current.close();
+      Object.values(markersRef.current).forEach(marker => marker.setMap(null));
       markersRef.current = {};
     };
   }, [parkingSpots, mapInstance, googleMaps]);
 
   return (
-    <div className="relative">
+    <div className="relative w-full h-full">
       <div className="map-container" ref={mapRef} />
+
+      {/* Loading overlay */}
       {isUpdating && (
-        <div className="absolute top-4 right-4 bg-white bg-opacity-95 rounded-xl px-4 py-3 shadow-lg z-10 border border-gray-200 backdrop-blur-sm">
-          <div className="flex items-center space-x-3">
-            <div className="relative">
-              <div className="animate-spin rounded-full h-5 w-5 border-2 border-gray-300"></div>
-              <div className="absolute inset-0 animate-spin rounded-full h-5 w-5 border-2 border-blue-600 border-t-transparent"></div>
-            </div>
+        <div className="absolute top-5 right-5 glass-panel px-4 py-3 z-10 animate-fade-in">
+          <div className="flex items-center gap-3">
+            <div className="w-4 h-4 rounded-full border-2 border-gold/30 border-t-gold animate-spin" />
             <div>
-              <span className="text-sm font-medium text-gray-800">Updating map data...</span>
-              <p className="text-xs text-gray-600 mt-1">New parking spots are being loaded</p>
+              <span className="text-xs font-medium text-white/80">Updating zones</span>
             </div>
           </div>
         </div>
       )}
+
+      {/* Empty state */}
       {!isUpdating && parkingSpots.length === 0 && mapInstance && (
-        <div className="absolute top-4 left-4 bg-amber-50 bg-opacity-95 rounded-xl px-4 py-3 shadow-lg z-10 border border-amber-200 backdrop-blur-sm">
-          <div className="flex items-center space-x-3">
-            <div className="w-3 h-3 bg-amber-400 rounded-full animate-pulse"></div>
+        <div className="absolute top-5 left-5 glass-panel px-4 py-3 z-10 animate-fade-in">
+          <div className="flex items-center gap-3">
+            <div className="w-2.5 h-2.5 rounded-full bg-gold animate-pulse-soft" />
             <div>
-              <span className="text-sm font-medium text-amber-800">No parking spots found</span>
-              <p className="text-xs text-amber-600 mt-1">Try zooming out or moving to a different area</p>
+              <span className="text-xs font-medium text-white/70">No zones in view</span>
+              <p className="text-[0.65rem] text-white/30 mt-0.5">Zoom out or pan the map</p>
             </div>
           </div>
         </div>

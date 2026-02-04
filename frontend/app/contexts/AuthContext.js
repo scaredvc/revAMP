@@ -173,14 +173,41 @@ export function AuthProvider({ children }) {
         setUser(null)
     }
 
+    const loginAsGuest = async () => {
+        try {
+            const { response, data } = await postJson('/auth/guest', {})
+
+            if (!response.ok || !data.access_token) {
+                return { success: false, error: 'Guest login failed' }
+            }
+
+            localStorage.setItem('parkingToken', data.access_token)
+            setToken(data.access_token)
+
+            const userInfo = await fetchUserInfo(data.access_token)
+            if (userInfo) {
+                setUser(userInfo)
+                return { success: true }
+            }
+
+            localStorage.removeItem('parkingToken')
+            setToken(null)
+            return { success: false, error: 'Guest session could not be created' }
+        } catch (error) {
+            console.error('Guest login error:', error)
+            return { success: false, error: 'Network error. Please try again.' }
+        }
+    }
+
     const value = {
         user,           // Current user data
         token,          // JWT token
         isLoading,      // Loading state
         login,          // Login function
+        loginAsGuest,   // Guest login function
         register,       // Register function
         logout,         // Logout function
-        isAuthenticated: !!user  // Boolean: true if user is logged in
+        isAuthenticated: !!user && !user.is_guest  // true only for full user accounts
     }
 
     return (

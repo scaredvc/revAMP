@@ -1,35 +1,47 @@
-import localFont from "next/font/local";
+import { Playfair_Display, DM_Sans, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "./contexts/AuthContext";
 
-const geistSans = localFont({
-  src: "./fonts/GeistVF.woff",
-  variable: "--font-geist-sans",
-  weight: "100 900",
+const playfair = Playfair_Display({
+  subsets: ["latin"],
+  variable: "--font-display",
+  weight: ["400", "500", "600", "700", "800"],
+  display: "swap",
 });
-const geistMono = localFont({
-  src: "./fonts/GeistMonoVF.woff",
-  variable: "--font-geist-mono",
-  weight: "100 900",
+
+const dmSans = DM_Sans({
+  subsets: ["latin"],
+  variable: "--font-body",
+  weight: ["300", "400", "500", "600", "700"],
+  display: "swap",
+});
+
+const jetbrains = JetBrains_Mono({
+  subsets: ["latin"],
+  variable: "--font-mono",
+  weight: ["400", "500"],
+  display: "swap",
 });
 
 export const metadata = {
-  title: 'revAMP',
-  description: 'a better parking application for UC Davis students',
+  title: "revAMP - Campus Parking Reimagined",
+  description:
+    "Find, navigate, and manage parking at UC Davis with real-time zone mapping.",
   icons: {
-    icon: '/car.svg',
+    icon: "/car.svg",
   },
-}
+};
 
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased bg-black`}
+        className={`${playfair.variable} ${dmSans.variable} ${jetbrains.variable} font-body antialiased`}
       >
         <AuthProvider>
           {children}
         </AuthProvider>
+        <div className="noise-overlay" aria-hidden="true" />
       </body>
     </html>
   );

@@ -6,72 +6,96 @@ export default function UserProfile() {
 
     if (!user) return null
 
+    const initials = user.full_name
+        ? user.full_name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
+        : user.email.charAt(0).toUpperCase()
+
     return (
-        <div className="bg-gray-900 rounded-lg shadow-lg p-6 border border-gray-700">
-            {/* User Info Header */}
-            <div className="flex items-center space-x-4 mb-6">
-                {/* User Avatar */}
-                <div className="w-12 h-12 bg-blue-600 rounded-full flex items-center justify-center">
-                    <span className="text-white font-bold text-lg">
-                        {user.full_name ? user.full_name.charAt(0).toUpperCase() : user.email.charAt(0).toUpperCase()}
+        <div className="glass-panel p-5">
+            {/* User header */}
+            <div className="flex items-center gap-3.5 mb-5">
+                <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-gold-600 to-gold flex items-center justify-center shadow-lg shadow-gold/10 flex-shrink-0">
+                    <span className="text-midnight font-bold text-sm tracking-tight">
+                        {initials}
                     </span>
                 </div>
-                
-                {/* User Details */}
-                <div className="flex-1">
-                    <h3 className="text-white font-semibold text-lg">
+                <div className="flex-1 min-w-0">
+                    <h3 className="text-white/90 font-semibold text-sm truncate">
                         {user.full_name || 'User'}
                     </h3>
-                    <p className="text-gray-400 text-sm">{user.email}</p>
+                    <p className="text-white/30 text-xs truncate font-mono">
+                        {user.email}
+                    </p>
                 </div>
             </div>
 
-            {/* Quick Stats */}
-            <div className="grid grid-cols-2 gap-4 mb-6">
-                <div className="bg-gray-800 rounded-lg p-4 text-center">
-                    <div className="text-2xl font-bold text-blue-400">0</div>
-                    <div className="text-gray-400 text-sm">Parking Sessions</div>
+            {/* Quick stats */}
+            <div className="grid grid-cols-2 gap-2 mb-5">
+                <div className="rounded-xl bg-white/[0.03] border border-white/[0.04] p-3.5 text-center">
+                    <div className="font-display text-xl font-bold text-aggie-400">0</div>
+                    <div className="text-white/25 text-[0.65rem] mt-0.5 uppercase tracking-wider">Sessions</div>
                 </div>
-                <div className="bg-gray-800 rounded-lg p-4 text-center">
-                    <div className="text-2xl font-bold text-green-400">0</div>
-                    <div className="text-gray-400 text-sm">Favorites</div>
+                <div className="rounded-xl bg-white/[0.03] border border-white/[0.04] p-3.5 text-center">
+                    <div className="font-display text-xl font-bold text-sage">0</div>
+                    <div className="text-white/25 text-[0.65rem] mt-0.5 uppercase tracking-wider">Favorites</div>
                 </div>
             </div>
 
-            {/* Action Buttons */}
-            <div className="space-y-3">
-                <button className="w-full bg-gray-800 hover:bg-gray-700 text-white py-2 px-4 rounded-lg transition duration-200 flex items-center justify-center space-x-2">
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                    </svg>
-                    <span>View Profile</span>
-                </button>
-                
-                <button className="w-full bg-gray-800 hover:bg-gray-700 text-white py-2 px-4 rounded-lg transition duration-200 flex items-center justify-center space-x-2">
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                    </svg>
-                    <span>Parking History</span>
-                </button>
-                
-                <button className="w-full bg-gray-800 hover:bg-gray-700 text-white py-2 px-4 rounded-lg transition duration-200 flex items-center justify-center space-x-2">
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                    </svg>
-                    <span>Favorites</span>
-                </button>
+            {/* Actions */}
+            <div className="space-y-1.5">
+                {[
+                    {
+                        label: 'Profile',
+                        icon: (
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" />
+                                <circle cx="12" cy="7" r="4" />
+                            </svg>
+                        ),
+                    },
+                    {
+                        label: 'History',
+                        icon: (
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <circle cx="12" cy="12" r="10" />
+                                <polyline points="12,6 12,12 16,14" />
+                            </svg>
+                        ),
+                    },
+                    {
+                        label: 'Favorites',
+                        icon: (
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z" />
+                            </svg>
+                        ),
+                    },
+                ].map(({ label, icon }) => (
+                    <button
+                        key={label}
+                        className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-white/40 hover:text-white/80 hover:bg-white/[0.04] transition-all duration-200 text-sm group"
+                    >
+                        <span className="opacity-50 group-hover:opacity-80 transition-opacity">{icon}</span>
+                        <span>{label}</span>
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-auto opacity-0 group-hover:opacity-40 transition-opacity -translate-x-1 group-hover:translate-x-0 transition-transform">
+                            <polyline points="9,18 15,12 9,6" />
+                        </svg>
+                    </button>
+                ))}
             </div>
 
-            {/* Logout Button */}
-            <div className="mt-6 pt-4 border-t border-gray-700">
+            {/* Logout */}
+            <div className="mt-4 pt-4 border-t border-white/[0.04]">
                 <button
                     onClick={logout}
-                    className="w-full bg-red-600 hover:bg-red-700 text-white py-2 px-4 rounded-lg transition duration-200 flex items-center justify-center space-x-2"
+                    className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-rose/60 hover:text-rose hover:bg-rose/5 border border-transparent hover:border-rose/10 transition-all duration-200 text-sm"
                 >
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4" />
+                        <polyline points="16,17 21,12 16,7" />
+                        <line x1="21" y1="12" x2="9" y2="12" />
                     </svg>
-                    <span>Sign Out</span>
+                    Sign Out
                 </button>
             </div>
         </div>

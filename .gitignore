@@ -253,6 +253,17 @@ tmp/
 # Project specific
 .qodo/
 doc/
+AGENTS.md
+CLAUDE.md
+.claude/
+.mcp.json
+
+# Local service/env files
+backend/.env
+backend/.env.*
+frontend/.env
+frontend/.env.*
+!frontend/.env.example
 
 # ===== GLOBAL PATTERNS =====
 # These will match files in any directory

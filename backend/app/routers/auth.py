@@ -1,5 +1,6 @@
 # routers/auth.py
 from datetime import timedelta
+import uuid
 from typing import Any
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
@@ -105,8 +106,18 @@ async def login(user_data: UserLogin, db: Session = Depends(get_db)) -> Any:
     )
     return {"access_token": access_token, "token_type": "bearer"}
 
+@router.post("/guest", response_model=Token)
+async def guest_login() -> Any:
+    """Create a temporary guest token"""
+    access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
+    access_token = create_access_token(
+        data={"sub": f"guest:{uuid.uuid4()}", "guest": True},
+        expires_delta=access_token_expires,
+    )
+    return {"access_token": access_token, "token_type": "bearer"}
+
 @router.get("/me", response_model=UserSchema)
-async def read_users_me(current_user: User = Depends(get_current_active_user)):
+async def read_users_me(current_user: User = Depends(get_current_user)):
     """Get current user information"""
     return current_user
 

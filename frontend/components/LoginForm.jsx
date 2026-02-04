@@ -2,36 +2,36 @@
 import { useState } from 'react'
 import { useAuth } from '../app/contexts/AuthContext'
 import { useRouter } from 'next/navigation'
-import Link from 'next/link'
 
-// Stepper component showing the user flow
-function Stepper() {
+function StepIndicator() {
     const steps = [
-        { label: 'Sign in', icon: '1' },
-        { label: 'Search zone', icon: '2' },
-        { label: 'Get directions', icon: '3' },
+        { label: 'Sign in', num: '01' },
+        { label: 'Search zone', num: '02' },
+        { label: 'Get directions', num: '03' },
     ]
 
     return (
-        <div className="flex items-center justify-center gap-2 mb-8">
+        <div className="flex items-center gap-3 mb-10">
             {steps.map((step, index) => (
-                <div key={step.label} className="flex items-center">
+                <div key={step.label} className="flex items-center gap-3">
                     <div className="flex items-center gap-2">
                         <span
-                            className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-semibold ${
+                            className={`font-mono text-xs tracking-wider ${
                                 index === 0
-                                    ? 'bg-blue-600 text-white'
-                                    : 'bg-gray-700 text-gray-400'
+                                    ? 'text-gold'
+                                    : 'text-white/20'
                             }`}
                         >
-                            {step.icon}
+                            {step.num}
                         </span>
-                        <span className={`text-sm ${index === 0 ? 'text-white font-medium' : 'text-gray-500'}`}>
+                        <span className={`text-xs ${
+                            index === 0 ? 'text-white/80 font-medium' : 'text-white/20'
+                        }`}>
                             {step.label}
                         </span>
                     </div>
                     {index < steps.length - 1 && (
-                        <div className="w-8 h-px bg-gray-700 mx-2" />
+                        <div className="w-6 h-px bg-white/10" />
                     )}
                 </div>
             ))}
@@ -39,7 +39,7 @@ function Stepper() {
     )
 }
 
-export default function LoginForm({ showHero = false }) {
+export default function LoginForm() {
     const [isLogin, setIsLogin] = useState(true)
     const [email, setEmail] = useState('')
     const [password, setPassword] = useState('')
@@ -49,8 +49,7 @@ export default function LoginForm({ showHero = false }) {
     const [success, setSuccess] = useState('')
 
     const router = useRouter()
-
-    const { login, register } = useAuth()
+    const { login, register, loginAsGuest } = useAuth()
 
     const handleSubmit = async (e) => {
         e.preventDefault()
@@ -68,14 +67,13 @@ export default function LoginForm({ showHero = false }) {
             }
 
             if (result.success) {
-                setSuccess(isLogin ? 'Login successful!' : 'Registration successful!')
+                setSuccess(isLogin ? 'Welcome back.' : 'Account created.')
                 router.push('/dashboard')
             } else {
-                // Ensure error is always a string
                 const errorMessage = typeof result.error === 'string' ? result.error : 'An error occurred'
                 setError(errorMessage)
             }
-        } catch (error) {
+        } catch (err) {
             setError('An unexpected error occurred')
         } finally {
             setIsSubmitting(false)
@@ -91,55 +89,69 @@ export default function LoginForm({ showHero = false }) {
         setSuccess('')
     }
 
+    const handleGuestAccess = async () => {
+        setIsSubmitting(true)
+        setError('')
+        setSuccess('')
+
+        try {
+            const result = await loginAsGuest()
+            if (result.success) {
+                setSuccess('Continuing as guest.')
+                router.push('/dashboard')
+            } else {
+                setError(result.error || 'Guest login failed')
+            }
+        } catch (err) {
+            setError('An unexpected error occurred')
+        } finally {
+            setIsSubmitting(false)
+        }
+    }
+
     return (
-        <div className="max-w-md mx-auto">
-            {/* Hero section (optional) */}
-            {showHero && (
-                <div className="text-center mb-8">
-                    <p className="text-sm uppercase tracking-widest mb-3" style={{color: 'var(--ucd-muted)'}}>revAMP</p>
-                    <h1 className="text-3xl font-bold mb-3" style={{color: 'var(--ucd-light)'}}>
-                        Find and pay for parking at UC Davis
-                    </h1>
-                    <p className="text-base mb-6" style={{color: 'var(--ucd-muted)'}}>
-                        Map your options, manage sessions, and keep your parking organized.
-                    </p>
-                </div>
-            )}
+        <div className="animate-fade-up" style={{ animationDelay: '0.2s', animationFillMode: 'both' }}>
+            {/* Step indicator */}
+            <StepIndicator />
 
-            {/* Stepper */}
-            <Stepper />
-
-            <div className="bg-gray-900 rounded-lg shadow-xl p-8 border border-gray-700">
+            {/* Form card */}
+            <div className="glass-panel-strong p-8 lg:p-10">
                 {/* Header */}
-                <div className="text-center mb-6">
-                    <h2 className="text-2xl font-bold text-white mb-2">
-                        {isLogin ? 'Welcome Back' : 'Create Account'}
+                <div className="mb-8">
+                    <h2 className="font-display text-2xl font-bold text-white/95 tracking-tight mb-2">
+                        {isLogin ? 'Welcome back' : 'Create account'}
                     </h2>
-                    <p className="text-gray-400 text-sm">
-                        {isLogin ? 'Sign in to your parking account' : 'Join revAMP for better parking'}
+                    <p className="text-sm text-white/40">
+                        {isLogin ? 'Sign in to access your parking dashboard' : 'Join revAMP for smarter campus parking'}
                     </p>
                 </div>
 
-                {/* Success Message */}
+                {/* Status messages */}
                 {success && (
-                    <div className="mb-4 p-3 bg-green-900/20 border border-green-700 rounded text-green-400">
+                    <div className="mb-6 px-4 py-3 rounded-xl bg-sage/10 border border-sage/20 text-sage text-sm flex items-center gap-2">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M20 6L9 17l-5-5" />
+                        </svg>
                         {success}
                     </div>
                 )}
-
-                {/* Error Message */}
                 {error && (
-                    <div className="mb-4 p-3 bg-red-900/20 border border-red-700 rounded text-red-400">
+                    <div className="mb-6 px-4 py-3 rounded-xl bg-rose/10 border border-rose/20 text-rose text-sm flex items-center gap-2">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                            <circle cx="12" cy="12" r="10" />
+                            <line x1="15" y1="9" x2="9" y2="15" />
+                            <line x1="9" y1="9" x2="15" y2="15" />
+                        </svg>
                         {error}
                     </div>
                 )}
 
                 {/* Form */}
-                <form onSubmit={handleSubmit} className="space-y-6">
-                    {/* Full Name Field (only for registration) */}
+                <form onSubmit={handleSubmit} className="space-y-5">
+                    {/* Full Name (registration only) */}
                     {!isLogin && (
-                        <div>
-                            <label htmlFor="fullName" className="block text-sm font-medium text-gray-300 mb-2">
+                        <div className="animate-fade-up" style={{ animationDelay: '0.05s', animationFillMode: 'both' }}>
+                            <label htmlFor="fullName" className="block text-xs font-medium text-white/50 mb-2 uppercase tracking-wider">
                                 Full Name
                             </label>
                             <input
@@ -147,32 +159,32 @@ export default function LoginForm({ showHero = false }) {
                                 id="fullName"
                                 value={fullName}
                                 onChange={(e) => setFullName(e.target.value)}
-                                className="w-full px-4 py-3 bg-gray-800 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                placeholder="Enter your full name"
+                                className="w-full px-4 py-3.5 rounded-xl bg-white/[0.03] border border-white/[0.06] text-white/90 placeholder-white/20 focus:outline-none focus:border-gold/50 focus:ring-2 focus:ring-gold/10 transition-all duration-300 text-sm"
+                                placeholder="Your name"
                                 required={!isLogin}
                             />
                         </div>
                     )}
 
-                    {/* Email Field */}
+                    {/* Email */}
                     <div>
-                        <label htmlFor="email" className="block text-sm font-medium text-gray-300 mb-2">
-                            Email Address
+                        <label htmlFor="email" className="block text-xs font-medium text-white/50 mb-2 uppercase tracking-wider">
+                            Email
                         </label>
                         <input
                             type="email"
                             id="email"
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
-                            className="w-full px-4 py-3 bg-gray-800 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                            placeholder="Enter your email"
+                            className="w-full px-4 py-3.5 rounded-xl bg-white/[0.03] border border-white/[0.06] text-white/90 placeholder-white/20 focus:outline-none focus:border-gold/50 focus:ring-2 focus:ring-gold/10 transition-all duration-300 text-sm"
+                            placeholder="you@ucdavis.edu"
                             required
                         />
                     </div>
 
-                    {/* Password Field */}
+                    {/* Password */}
                     <div>
-                        <label htmlFor="password" className="block text-sm font-medium text-gray-300 mb-2">
+                        <label htmlFor="password" className="block text-xs font-medium text-white/50 mb-2 uppercase tracking-wider">
                             Password
                         </label>
                         <input
@@ -180,25 +192,23 @@ export default function LoginForm({ showHero = false }) {
                             id="password"
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
-                            className="w-full px-4 py-3 bg-gray-800 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                            placeholder="Enter your password"
+                            className="w-full px-4 py-3.5 rounded-xl bg-white/[0.03] border border-white/[0.06] text-white/90 placeholder-white/20 focus:outline-none focus:border-gold/50 focus:ring-2 focus:ring-gold/10 transition-all duration-300 text-sm"
+                            placeholder="Min 7 characters"
                             required
+                            minLength={7}
                         />
                     </div>
 
-                    {/* Submit Button */}
+                    {/* Submit */}
                     <button
                         type="submit"
                         disabled={isSubmitting}
-                        className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-blue-800 disabled:cursor-not-allowed text-white font-semibold py-3 px-4 rounded-lg transition duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-gray-900"
+                        className="w-full mt-2 py-3.5 px-6 rounded-xl font-semibold text-sm transition-all duration-300 bg-gradient-to-r from-gold-600 to-gold text-midnight hover:shadow-lg hover:shadow-gold/20 hover:-translate-y-0.5 disabled:opacity-40 disabled:cursor-not-allowed disabled:transform-none focus:outline-none focus:ring-2 focus:ring-gold/30 focus:ring-offset-2 focus:ring-offset-midnight"
                     >
                         {isSubmitting ? (
-                            <span className="flex items-center justify-center">
-                                <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                </svg>
-                                {isLogin ? 'Signing In...' : 'Creating Account...'}
+                            <span className="flex items-center justify-center gap-2">
+                                <div className="w-4 h-4 rounded-full border-2 border-midnight/30 border-t-midnight animate-spin" />
+                                {isLogin ? 'Signing in...' : 'Creating account...'}
                             </span>
                         ) : (
                             isLogin ? 'Sign In' : 'Create Account'
@@ -206,40 +216,50 @@ export default function LoginForm({ showHero = false }) {
                     </button>
                 </form>
 
-                {/* Toggle Mode */}
+                {/* Toggle mode */}
                 <div className="mt-6 text-center">
                     <button
                         onClick={toggleMode}
-                        className="text-blue-400 hover:text-blue-300 text-sm transition duration-200"
+                        className="text-white/30 hover:text-gold text-sm transition-colors duration-300"
                     >
-                        {isLogin ? "Don't have an account? Sign up" : "Already have an account? Sign in"}
+                        {isLogin ? "Don't have an account? " : 'Already have an account? '}
+                        <span className="text-gold/70 hover:text-gold font-medium">
+                            {isLogin ? 'Sign up' : 'Sign in'}
+                        </span>
                     </button>
                 </div>
 
                 {/* Divider */}
-                <div className="mt-6 flex items-center">
-                    <div className="flex-1 border-t border-gray-700"></div>
-                    <span className="px-3 text-gray-500 text-sm">or</span>
-                    <div className="flex-1 border-t border-gray-700"></div>
+                <div className="mt-6 flex items-center gap-4">
+                    <div className="flex-1 h-px bg-white/[0.06]" />
+                    <span className="text-white/20 text-xs font-mono uppercase tracking-wider">or</span>
+                    <div className="flex-1 h-px bg-white/[0.06]" />
                 </div>
 
-                {/* Continue as Guest */}
-                <div className="mt-6 text-center">
-                    <Link
-                        href="/dashboard"
-                        className="inline-flex items-center justify-center w-full py-3 px-4 border border-gray-600 rounded-lg text-gray-300 hover:bg-gray-800 hover:border-gray-500 transition duration-200"
+                {/* Guest access */}
+                <div className="mt-6">
+                    <button
+                        type="button"
+                        onClick={handleGuestAccess}
+                        disabled={isSubmitting}
+                        className="flex items-center justify-center w-full py-3.5 px-6 rounded-xl border border-white/[0.06] text-white/50 hover:text-white/80 hover:border-white/20 hover:bg-white/[0.02] transition-all duration-300 text-sm font-medium"
                     >
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2 opacity-50">
+                            <path d="M15 3h4a2 2 0 012 2v14a2 2 0 01-2 2h-4" />
+                            <polyline points="10,17 15,12 10,7" />
+                            <line x1="15" y1="12" x2="3" y2="12" />
+                        </svg>
                         Continue as Guest
-                    </Link>
-                    <p className="mt-2 text-xs text-gray-500">
+                    </button>
+                    <p className="mt-2 text-center text-[0.65rem] text-white/20 tracking-wider">
                         Browse parking zones without an account
                     </p>
                 </div>
 
-                {/* Demo Account Info */}
-                <div className="mt-6 pt-4 border-t border-gray-800 text-center">
-                    <p className="text-gray-500 text-xs mb-1">Demo account for testing:</p>
-                    <p className="text-gray-600 text-xs font-mono">
+                {/* Demo credentials */}
+                <div className="mt-6 pt-5 border-t border-white/[0.04] text-center">
+                    <p className="text-white/20 text-[0.65rem] tracking-wider uppercase mb-1">Demo Account</p>
+                    <p className="text-white/10 text-xs font-mono">
                         demo@example.com / demo123
                     </p>
                 </div>

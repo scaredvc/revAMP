@@ -87,7 +87,19 @@ class Settings:
         "DATABASE_URL",
         DATABASE_URL_LOCAL if APP_ENV == "local" else (DATABASE_URL_PROD or DATABASE_URL_LOCAL),
     )
-    SECRET_KEY: str = os.getenv("SECRET_KEY", "your-secret-key-here-change-in-production")
+    SECRET_KEY: str = os.getenv("SECRET_KEY", "")
+
+    @property
+    def secret_key_validated(self) -> str:
+        """Validate SECRET_KEY is set in production"""
+        if not self.SECRET_KEY:
+            if self.APP_ENV == "prod":
+                raise ValueError("SECRET_KEY must be set in production environment")
+            # For local dev, generate a warning but use a dev key
+            import warnings
+            warnings.warn("SECRET_KEY not set - using development key. Set SECRET_KEY in production!", UserWarning)
+            return "dev-only-insecure-key-do-not-use-in-production"
+        return self.SECRET_KEY
     ALGORITHM: str = os.getenv("ALGORITHM", "HS256")
     ACCESS_TOKEN_EXPIRE_MINUTES: int = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "30"))
 
