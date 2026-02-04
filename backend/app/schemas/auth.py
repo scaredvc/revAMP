@@ -1,5 +1,5 @@
 # schemas/auth.py
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, field_validator
 from typing import Optional
 from datetime import datetime
 
@@ -11,6 +11,13 @@ class UserBase(BaseModel):
 
 class UserCreate(UserBase):
     password: str
+
+    @field_validator('password')
+    @classmethod
+    def validate_password_strength(cls, v):
+        if len(v) < 7:
+            raise ValueError("Password must be at least 7 characters long")
+        return v
 
 class UserLogin(BaseModel):
     email: EmailStr
@@ -32,6 +39,7 @@ class User(UserBase):
     preferred_zones: Optional[list] = None
     notification_enabled: bool = True
     max_parking_duration: int = 480
+    is_guest: bool = False
 
     class Config:
         from_attributes = True
