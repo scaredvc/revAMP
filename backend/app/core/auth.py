@@ -24,9 +24,9 @@ def authenticate_user(email: str, password: str, db: Session):
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
     to_encode = data.copy()
     if expires_delta:
-        expire = datetime.now(tz=None) + expires_delta
+        expire = datetime.utcnow() + expires_delta
     else:
-        expire = datetime.now(tz=None) + timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
+        expire = datetime.utcnow() + timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
     to_encode.update({"exp": expire})
     encoded_jwt = jwt.encode(to_encode, settings.secret_key_validated, algorithm=settings.ALGORITHM)
     return encoded_jwt
@@ -51,7 +51,7 @@ def get_current_user(token_data: dict = Depends(verify_token), db: Session = Dep
         now = datetime.utcnow()
         return SimpleNamespace(
             id=0,
-            email="guest@revamp.local",
+            email="guest@revamp.app",
             username="guest",
             full_name="Guest",
             is_active=True,
