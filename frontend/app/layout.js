@@ -1,6 +1,7 @@
 import { Playfair_Display, DM_Sans, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "./contexts/AuthContext";
+import { FavoritesProvider } from "./contexts/FavoritesContext";
 
 const playfair = Playfair_Display({
   subsets: ["latin"],
@@ -39,7 +40,9 @@ export default function RootLayout({ children }) {
         className={`${playfair.variable} ${dmSans.variable} ${jetbrains.variable} font-body antialiased`}
       >
         <AuthProvider>
-          {children}
+          <FavoritesProvider>
+            {children}
+          </FavoritesProvider>
         </AuthProvider>
         <div className="noise-overlay" aria-hidden="true" />
       </body>

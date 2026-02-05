@@ -670,3 +670,388 @@ body {
   animation: shimmerLine 1.5s ease-in-out infinite;
   border-radius: 8px;
 }
+
+/* ═══════════════════════════════════════════════════
+   FAVORITES — Campus Cartography Extension
+   ═══════════════════════════════════════════════════ */
+
+/* ── Sidebar Tabs ── */
+.sidebar-tabs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  position: relative;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--border-subtle);
+  border-radius: 12px;
+  padding: 3px;
+  gap: 0;
+}
+
+.sidebar-tab {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 9px 12px;
+  border-radius: 9px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  cursor: pointer;
+  border: none;
+  background: transparent;
+  color: var(--text-tertiary);
+  transition: color 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  font-family: var(--font-body);
+  position: relative;
+  z-index: 2;
+}
+
+.sidebar-tab:hover {
+  color: var(--text-secondary);
+}
+
+.sidebar-tab.active {
+  color: var(--text-primary);
+}
+
+.tab-indicator {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: calc(50% - 3px);
+  height: calc(100% - 6px);
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--border-medium);
+  border-radius: 9px;
+  transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  z-index: 1;
+  pointer-events: none;
+}
+
+.tab-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 100px;
+  font-size: 0.6rem;
+  font-weight: 700;
+  background: var(--gold-glow);
+  color: var(--gold);
+  border: 1px solid rgba(212, 168, 67, 0.25);
+  letter-spacing: 0;
+}
+
+/* ── Heart Button on Zone Cards ── */
+.fav-heart-btn {
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  border-radius: 9px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid transparent;
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--text-tertiary);
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.fav-heart-btn:hover {
+  background: rgba(212, 168, 67, 0.08);
+  color: var(--gold-dim);
+  border-color: rgba(212, 168, 67, 0.15);
+  transform: scale(1.1);
+}
+
+.fav-heart-btn.is-fav {
+  background: var(--gold-glow);
+  color: var(--gold);
+  border-color: rgba(212, 168, 67, 0.3);
+}
+
+.fav-heart-btn.is-fav:hover {
+  background: rgba(212, 168, 67, 0.25);
+  color: var(--gold-bright);
+  transform: scale(1.1);
+}
+
+/* ── Favorite Cards ── */
+.fav-card {
+  display: flex;
+  gap: 0;
+  padding: 0;
+  border-radius: 14px;
+  border: 1px solid transparent;
+  background: rgba(255, 255, 255, 0.02);
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  overflow: hidden;
+  opacity: 0;
+  animation: fadeUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.fav-card:nth-child(1) { animation-delay: 0.04s; }
+.fav-card:nth-child(2) { animation-delay: 0.08s; }
+.fav-card:nth-child(3) { animation-delay: 0.12s; }
+.fav-card:nth-child(4) { animation-delay: 0.16s; }
+.fav-card:nth-child(5) { animation-delay: 0.20s; }
+.fav-card:nth-child(6) { animation-delay: 0.24s; }
+
+.fav-card:hover {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: var(--border-medium);
+}
+
+.fav-card.drag-over {
+  border-color: var(--gold);
+  box-shadow: 0 0 0 2px var(--gold-glow), inset 0 0 0 1px rgba(212, 168, 67, 0.06);
+  background: rgba(212, 168, 67, 0.04);
+}
+
+/* Drag handle */
+.fav-drag-handle {
+  flex-shrink: 0;
+  width: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-tertiary);
+  cursor: grab;
+  transition: all 0.2s ease;
+  border-right: 1px solid var(--border-subtle);
+  background: rgba(255, 255, 255, 0.01);
+}
+
+.fav-drag-handle:hover {
+  color: var(--text-secondary);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.fav-drag-handle:active {
+  cursor: grabbing;
+  color: var(--gold);
+}
+
+/* Card body */
+.fav-card-body {
+  flex: 1;
+  min-width: 0;
+  padding: 14px 16px;
+}
+
+.fav-card-top {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.fav-card-icon {
+  flex-shrink: 0;
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--gold-glow);
+  color: var(--gold);
+  border: 1px solid rgba(212, 168, 67, 0.2);
+}
+
+.fav-card-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.fav-card-name {
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 0.85rem;
+  color: var(--text-primary);
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.fav-card-desc {
+  font-size: 0.75rem;
+  line-height: 1.45;
+  color: var(--text-secondary);
+  margin-top: 2px;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Usage chip */
+.fav-usage-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  border-radius: 6px;
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  background: var(--sage-glow);
+  color: var(--sage);
+  border: 1px solid rgba(45, 212, 168, 0.15);
+  margin-bottom: 10px;
+}
+
+/* Favorite action buttons */
+.fav-card-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.fav-action-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  padding: 7px 12px;
+  border-radius: 8px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  cursor: pointer;
+  border: none;
+  transition: all 0.2s ease;
+  font-family: var(--font-body);
+}
+
+.fav-action-btn.use {
+  flex: 1;
+  background: linear-gradient(135deg, var(--aggie) 0%, var(--aggie-light) 100%);
+  color: white;
+}
+
+.fav-action-btn.use:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 3px 12px rgba(0, 40, 85, 0.4);
+}
+
+.fav-action-btn.directions {
+  flex: 1;
+  background: linear-gradient(135deg, var(--gold-dim) 0%, var(--gold) 100%);
+  color: var(--midnight);
+}
+
+.fav-action-btn.directions:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 3px 12px rgba(212, 168, 67, 0.4);
+}
+
+.fav-action-btn.remove {
+  width: 32px;
+  flex-shrink: 0;
+  padding: 7px;
+  background: rgba(230, 57, 70, 0.08);
+  color: var(--text-tertiary);
+  border: 1px solid transparent;
+}
+
+.fav-action-btn.remove:hover {
+  background: rgba(230, 57, 70, 0.15);
+  color: var(--rose);
+  border-color: rgba(230, 57, 70, 0.2);
+}
+
+/* ── Favorites Empty State ── */
+.fav-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 32px;
+  text-align: center;
+}
+
+.fav-empty-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(212, 168, 67, 0.06);
+  border: 1px solid rgba(212, 168, 67, 0.12);
+  color: var(--gold-dim);
+  margin-bottom: 20px;
+}
+
+.fav-empty-title {
+  font-family: var(--font-display);
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  letter-spacing: -0.02em;
+  margin-bottom: 8px;
+}
+
+.fav-empty-desc {
+  font-size: 0.78rem;
+  line-height: 1.6;
+  color: var(--text-tertiary);
+  max-width: 240px;
+  margin-bottom: 24px;
+}
+
+.fav-empty-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 20px;
+  border-radius: 10px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  border: 1px solid rgba(212, 168, 67, 0.25);
+  background: rgba(212, 168, 67, 0.08);
+  color: var(--gold);
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  font-family: var(--font-body);
+}
+
+.fav-empty-action:hover {
+  background: rgba(212, 168, 67, 0.15);
+  border-color: rgba(212, 168, 67, 0.4);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 16px rgba(212, 168, 67, 0.15);
+}
+
+/* ── InfoWindow Favorite Button ── */
+.info-fav-btn {
+  flex: 0 0 auto;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #e5e5e5;
+  background: #fafafa;
+  color: #999;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.info-fav-btn:hover {
+  border-color: #D4A843;
+  background: rgba(212, 168, 67, 0.08);
+  color: #D4A843;
+}
+
+.info-fav-btn.is-fav {
+  background: rgba(212, 168, 67, 0.12);
+  border-color: rgba(212, 168, 67, 0.35);
+  color: #D4A843;
+}

@@ -7,7 +7,7 @@ from app.core.auth import get_current_active_user
 from app.core.database import get_db
 from app.models.user import User
 from app.models.favorite_zone import FavoriteZone
-from app.schemas.favorites import FavoriteZoneCreate, FavoriteZoneUpdate, FavoriteZoneResponse
+from app.schemas.favorites import FavoriteZoneCreate, FavoriteZoneUpdate, FavoriteZoneResponse, FavoriteReorderRequest
 from app.core.shared import safe_rate_limit
 
 router = APIRouter()
@@ -60,6 +60,30 @@ async def get_favorite_zones(
         FavoriteZone.user_id == current_user.id
     ).order_by(FavoriteZone.display_order).all()
     return favorites
+
+@router.patch("/reorder")
+@safe_rate_limit("30/minute")
+async def reorder_favorites(
+    request: Request,
+    reorder_data: FavoriteReorderRequest,
+    current_user: User = Depends(get_current_active_user),
+    db: Session = Depends(get_db)
+):
+    """Bulk-update display_order for the user's favorites"""
+    favorite_ids = [item.id for item in reorder_data.order]
+    favorites = db.query(FavoriteZone).filter(
+        FavoriteZone.id.in_(favorite_ids),
+        FavoriteZone.user_id == current_user.id
+    ).all()
+
+    fav_map = {f.id: f for f in favorites}
+    for item in reorder_data.order:
+        if item.id not in fav_map:
+            raise HTTPException(status_code=404, detail=f"Favorite {item.id} not found")
+        fav_map[item.id].display_order = item.display_order
+
+    db.commit()
+    return {"message": "Favorites reordered successfully"}
 
 @router.put("/{favorite_id}", response_model=FavoriteZoneResponse)
 @safe_rate_limit("30/minute")
