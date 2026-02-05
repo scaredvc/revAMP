@@ -100,6 +100,11 @@ const MAP_STYLES = [
   },
 ];
 
+function escapeHtml(str) {
+  const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' };
+  return str.replace(/[&<>"']/g, c => map[c]);
+}
+
 const Map = forwardRef(({ parkingSpots, onBoundsChanged, selectedSpot, isUpdating }, ref) => {
   const mapRef = useRef(null);
   const [googleMaps, setGoogleMaps] = useState(null);
@@ -262,22 +267,22 @@ const Map = forwardRef(({ parkingSpots, onBoundsChanged, selectedSpot, isUpdatin
           <div class="info-window">
             <div class="info-header">
               <div class="info-title-section">
-                <h3 class="info-title">${spot.name}</h3>
+                <h3 class="info-title">${escapeHtml(spot.name)}</h3>
                 <div class="info-status">
                   <span class="status-badge available">Active</span>
                 </div>
               </div>
             </div>
             <div class="info-content">
-              ${spot.description ? `<p class="info-description">${spot.description}</p>` : ''}
+              ${spot.description ? `<p class="info-description">${escapeHtml(spot.description)}</p>` : ''}
               ${spot.additionalInfo ? `
                 <div class="info-details">
-                  <span class="detail-item">${spot.additionalInfo}</span>
+                  <span class="detail-item">${escapeHtml(spot.additionalInfo)}</span>
                 </div>
               ` : ''}
             </div>
             <div class="info-footer">
-              <button class="info-button primary" onclick="window.dispatchEvent(new CustomEvent('getDirections', {detail: '${spot.name.replace(/'/g, "\\'")}'}))">
+              <button class="info-button primary" id="directions-btn">
                 Directions
               </button>
             </div>
@@ -287,6 +292,15 @@ const Map = forwardRef(({ parkingSpots, onBoundsChanged, selectedSpot, isUpdatin
         const infoWindow = new googleMaps.maps.InfoWindow({
           content: contentString,
           maxWidth: 300
+        });
+
+        googleMaps.maps.event.addListener(infoWindow, 'domready', () => {
+          const btn = document.getElementById('directions-btn');
+          if (btn) {
+            btn.onclick = () => {
+              window.dispatchEvent(new CustomEvent('getDirections', { detail: spot.name }));
+            };
+          }
         });
 
         marker.addListener('click', () => {
