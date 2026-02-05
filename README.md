@@ -19,20 +19,45 @@ revAMP is a full-stack web application **currently under development** that demo
 ## 🏗️ Architecture
 
 - **Frontend**: Next.js 15 with React 18, Tailwind CSS, and Google Maps integration *(in development)*
-- **Backend**: Flask API with CORS support for cross-origin requests *(in development)*
+- **Backend**: FastAPI with CORS support for cross-origin requests *(in development)*
 - **Maps**: Google Maps JavaScript API for interactive mapping *(implemented)*
 - **Styling**: Tailwind CSS for modern, responsive design *(in progress)*
 - **Data Source**: Public UC Davis parking services (for educational purposes)
 
 ## 🚀 Quick Start
 
-### Prerequisites
+### Option A: Local Stack (Docker Compose) — recommended
 
-- Node.js 18+ and npm
-- Python 3.8+
-- Google Maps API key
+One command boots Postgres + Redis + backend + frontend.
 
-### Installation
+**Prerequisites:** Docker and Docker Compose.
+
+```bash
+git clone https://github.com/yourusername/revAMP.git
+cd revAMP
+make setup          # copies .env.local.example → .env.local for both apps
+# (optional) edit backend/.env.local and frontend/.env.local
+make up             # builds & starts all containers
+```
+
+| Service  | URL |
+|----------|-----|
+| Frontend | http://localhost:3000 |
+| Backend  | http://localhost:8000 |
+| Postgres | localhost:5432 |
+| Redis    | localhost:6379 |
+
+Verify:
+
+```bash
+make health         # curls /health and /health/db
+```
+
+Other commands: `make down`, `make logs`, `make reset-db`.
+
+### Option B: Local Lite (manual processes + SQLite)
+
+**Prerequisites:** Node.js 18+, Python 3.8+, Google Maps API key.
 
 1. **Clone the repository**
    ```bash
@@ -43,40 +68,27 @@ revAMP is a full-stack web application **currently under development** that demo
 2. **Set up the backend**
    ```bash
    cd backend
+   cp env.example .env   # uses SQLite by default
    pip install -r requirements.txt
-   cd ..
+   uvicorn app.main:app --reload
    ```
+   The backend will run on `http://localhost:8000`
 
 3. **Set up the frontend**
    ```bash
    cd frontend
+   cp .env.example .env.local
+   # add your NEXT_PUBLIC_GOOGLE_MAPS_API_KEY to .env.local
    npm install
-   ```
-
-4. **Configure environment variables**
-   
-   Create a `.env` file in the `frontend` directory:
-   ```env
-   NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=your_google_maps_api_key_here
-   ```
-   
-   **Note**: You'll need to obtain a Google Maps JavaScript API key from the [Google Cloud Console](https://console.cloud.google.com/).
-
-5. **Run the application**
-
-   **Start the backend server:**
-   ```bash
-   cd backend
-   python main.py
-   ```
-   The backend will run on `http://localhost:5001`
-
-   **Start the frontend development server:**
-   ```bash
-   cd frontend
    npm run dev
    ```
    The frontend will run on `http://localhost:3000`
+
+### Troubleshooting
+
+- **Port already in use**: stop other services on 3000/8000/5432 or change ports in `.env.local` / `docker-compose.local.yml`.
+- **CORS errors**: verify `CORS_ORIGINS` in `backend/.env.local` includes `http://localhost:3000`.
+- **Map not loading**: ensure `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY` is set in `frontend/.env.local` (get one from the [Google Cloud Console](https://console.cloud.google.com/)).
 
 ## 🛠️ Development
 
@@ -84,22 +96,26 @@ revAMP is a full-stack web application **currently under development** that demo
 
 ```
 revAMP/
-├── backend/                 # Flask API server (in development)
-│   ├── main.py             # Main Flask application
-│   ├── searchZones.py      # Parking zone search functionality
-│   ├── getDescription.py   # Zone description retrieval
-│   ├── filterByZone.py     # Zone filtering utilities
-│   └── requirements.txt    # Python dependencies
-├── frontend/               # Next.js frontend application (in development)
-│   ├── app/                # Next.js app directory
-│   ├── components/         # React components
-│   │   ├── map.jsx         # Interactive map component
-│   │   ├── searchBar.jsx   # Search functionality
-│   │   ├── infoPanel.jsx   # Information display
-│   │   └── mapApp.jsx      # Main map application
-│   ├── public/             # Static assets
-│   └── package.json        # Node.js dependencies
-└── README.md              # This file
+├── docker-compose.local.yml  # Local full-stack orchestration
+├── Makefile                  # Helper commands (make up/down/logs/…)
+├── backend/
+│   ├── Dockerfile            # Container build for FastAPI
+│   ├── app/
+│   │   ├── main.py           # FastAPI application entry point
+│   │   ├── core/             # Config, database, auth, logging
+│   │   ├── models/           # SQLAlchemy models
+│   │   ├── routers/          # API route handlers
+│   │   ├── schemas/          # Pydantic request/response schemas
+│   │   └── services/         # Business logic
+│   ├── requirements.txt
+│   └── env.example           # Env template (SQLite / manual mode)
+├── frontend/
+│   ├── Dockerfile            # Container build for Next.js
+│   ├── app/                  # Next.js app directory
+│   ├── components/           # React components
+│   ├── public/               # Static assets
+│   └── package.json
+└── README.md
 ```
 
 ### Development Status
@@ -111,7 +127,7 @@ revAMP/
 | Search Functionality | 📋 Planned | UI components in development |
 | Zone Information Panel | 📋 Planned | Data processing needed |
 | Responsive Design | 🔄 In Progress | Tailwind CSS styling |
-| Backend API | 🔄 In Progress | Flask endpoints being developed |
+| Backend API | 🔄 In Progress | FastAPI endpoints being developed |
 
 ### Key Features (Planned/In Development)
 
@@ -137,10 +153,10 @@ revAMP/
 - **Leaflet** - Alternative mapping library *(planned)*
 
 ### Backend
-- **Flask** - Python web framework *(in development)*
-- **Flask-CORS** - Cross-origin resource sharing *(implemented)*
+- **FastAPI** - Async Python web framework *(implemented)*
+- **SQLAlchemy** - ORM / database toolkit *(implemented)*
+- **Uvicorn** - ASGI server *(implemented)*
 - **Requests** - HTTP library for API calls *(implemented)*
-- **Cloudscraper** - Web scraping utility (educational use only) *(implemented)*
 - **Python-dotenv** - Environment variable management *(implemented)*
 
 ## 🔒 Security & Ethics

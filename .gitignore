@@ -264,6 +264,8 @@ backend/.env.*
 frontend/.env
 frontend/.env.*
 !frontend/.env.example
+!backend/.env.local.example
+!frontend/.env.local.example
 
 # ===== GLOBAL PATTERNS =====
 # These will match files in any directory
@@ -292,3 +294,7 @@ frontend/.env.*
 **/out/
 **/build/
 **/.vercel
+# Local PRDs (keep untracked)
+/docs/feature-prds-and-todos.md
+/docs/bugfix-prd-logout-tab-reset.md
+/docs/security-prd-infowindow-xss.md
